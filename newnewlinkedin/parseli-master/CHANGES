@@ -1,0 +1,33 @@
+v.0.0.5, Sat 28, Feb 2015 -- Rosemary
+- summary field added  by zohar jackson <zoharj@gmail.com>
+- CSS selectors updated by Matthew Chan <mattkc7@gmail.com>
+
+v0.0.48, Fri 28 March, 2014 -- Sage
+- adds proxies support
+- fixes calling script with https error
+
+v0.0.46, Sun 28 April, 2013 -- Sage
+- fixed test cases
+- added travis continuous integration (.travis.yml)
+
+v0.0.45, Sun 28 April, 2013 -- Sage
+- added search capabilities
+- test cases are broken (test data relied on users who have updated their profiles)
+
+v0.0.44, Tue 12, 2013 -- Sage
+- Added interests
+- Added tech skill pills
+
+v0.0.42, Mon 11, 2013 -- Sage
+- Allow getli by /in username, e.g. mekarpeles
+- added # connections to json
+- eliminated duplicates in 'similar' key
+
+v0.0.4, Wed 06, Feb 2013 -- Sage
+- FIX: parseli cli now works, updated importing
+- Moved /scripts/parseli.py to /scripts/parseli (now called @ cli by parseli)
+- parseli command line utility now return json, not web.Storage object
+
+v0.0.2, Tue 20, Nov 2012 -- Initial Release.
+- added crawling support by url
+- returns json for education, name, location, employment
