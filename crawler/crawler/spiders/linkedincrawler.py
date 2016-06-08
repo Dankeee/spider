@@ -4,8 +4,11 @@ from scrapy import Spider
 from scrapy.selector import Selector
 from scrapy.contrib.spiders import CrawlSpider,Rule
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from crawler.items import CrawlerItem
+from crawler.items import ProfileItem, SchoolItem, CompanyItem
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 from scrapy.http import Request
 from crawler.configs import LinkedInAccount
 import cPickle as pickle
@@ -41,7 +44,42 @@ class linkedinSpider(scrapy.Spider):
 
 
     def start_requests(self):
-        return [Request("https://www.linkedin.com/uas/login", callback = self.get_linkedin_list)]
+        return [Request("https://www.linkedin.com/uas/login", callback = self.login)]
+
+    def login(self, response):
+
+        self.driver.get(self.url_login)
+        self.driver.find_element_by_id("session_key-login").send_keys(self.key)
+        self.driver.find_element_by_id("session_password-login").send_keys(self.password)
+        bttn = self.driver.find_element_by_id("btn-primary")
+        bttn.click()
+        self.driver.maximize_window()
+        time.sleep(5)
+
+        # cookie_list = self.driver.get_cookies()
+        # cookie_dict = {}
+        # for cookie in cookie_list:
+        #     #写入文件
+        #     f = open(cookie['name']+'.link','w')
+        #     pickle.dump(cookie, f)
+        #     f.close()
+        #
+        #     if cookie.has_key('name') and cookie.has_key('value'):
+        #         cookie_dict[cookie['name']] = cookie['value']
+
+        # return cookie_dict
+        url_list = ['http://www.linkedin.com/vsearch/p?keywords=vijay kumar&company=University of Pennsylvania']
+        self.driver.get(url_list[0])
+        WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+        profilecards = self.driver.find_elements_by_xpath('//ol[@id="results"]/li')
+
+        for profilecard in profilecards:
+            try:
+                profile = profilecard.find_element_by_class_name("title").get_attribute("href")
+                print profile
+                yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
+            except:
+                pass
 
 
     def get_cookie_from_linkedin(self):
@@ -97,21 +135,32 @@ class linkedinSpider(scrapy.Spider):
         return cookie_dict
 
 
-    def get_linkedin_list(self):
+    def get_linkedin_list(self,response):
         import requests
         from bs4 import BeautifulSoup as bs
 
-        self.cookdic = self.get_cookie()
+        # self.cookdic = self.get_cookie()
         url_list = ['http://www.linkedin.com/vsearch/p?keywords=vijay kumar&company=University of Pennsylvania']
-        self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36'}
+        # self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36'}
 
         #通过数据库字段判断request的url类型 为person 还是school 还是company
-        r = requests.get(url_list[0], headers=self.headers, cookies=self.cookdic, timeout=self.timeout)
-        soup = BeautifulSoup(r.text, 'lxml')
+        # r = requests.get(url_list[0], headers=self.headers, cookies=self.cookdic, timeout=self.timeout)
+        # soup = BeautifulSoup(r.text, 'lxml')
+        self.driver.get(url_list[0])
+        WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+        profilecards = self.driver.find_elements_by_xpath('//ol[@id="results"]')
+        # file = codecs.open('page.html', 'w', encoding='utf-8')
+        # file.write(r.text)
+        # file.close()
 
-        profilecards = soup.find_all(class_ = "mod result")
+        # profilecards = soup.find_all("li", class_ = "mod result")
+        print profilecards
         for profilecard in profilecards:
+
+            print profilecard
             profile = profilecard.div.h3.a.get('href')
+            print profilecard
+            print profile
             yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
 
 
@@ -121,6 +170,7 @@ class linkedinSpider(scrapy.Spider):
             sel = Selector(response)
             items = []
             #item['website'] = None
+            print "person crawllllllllll"
             try:
                 item['profile_url'] = str(response.url)
                 print item['profile_url']
@@ -302,6 +352,90 @@ class linkedinSpider(scrapy.Spider):
         return items
 
 
+    def parse_company_item(self, response):
+        if response:
+            item = CompanyItem()
+            sel = Selector(response)
+            items = []
+            try:
+                item['company_url'] = str(response.url)
+                print item['company_url']
+            except:
+                pass
+
+            try:
+                item['company_name'] = None
+                item['company_name'] = sel.xpath('//div[@class="left-entity"]/div/h1/text()').extract()
+            except:
+                pass
+
+            try:
+                item['company_logo'] = None
+                item['company_logo'] = sel.xpath('//div[@class="image-wrapper"]/img/@src').extract()
+            except:
+                pass
+
+            try:
+                item['company_img'] = None
+                item['company_img'] = sel.xpath('//div[@id="stream-about-section"]/img/@src').extract()
+            except:
+                pass
+
+            try:
+                item['company_description'] = None
+                item['company_description'] = sel.xpath('//div[@class="basic-info-description"]/p/text()').extract()
+            except:
+                pass
+
+            try:
+                item['company_specialties'] = None
+                item['company_specialties'] = sel.xpath('//div[@class="specialties"]/p/text()').extract()
+            except:
+                pass
+
+            try:
+                item['company_website'] = None
+                item['company_website'] = sel.xpath('//li[@class="website"]/p/text()').extract()
+            except:
+                pass
+
+            try:
+                item['company_industy'] = None
+                item['company_industy'] = sel.xpath('//li[@class="industry"]/p/text()').extract()
+            except:
+                pass
+
+            try:
+                item['company_type'] = None
+                item['company_type'] = sel.xpath('//li[@class="type"]/p/text()').extract()
+            except:
+                pass
+
+            try:
+                item['company_headquarters'] = None
+                item['company_headquarters'] = sel.xpath('//li[@class="vcard hq"]/p/text()').extract()
+            except:
+                pass
+
+            try:
+                item['company_size'] = None
+                item['company_size'] = sel.xpath('//li[@class="company-size"]/p/text()').extract()
+            except:
+                pass
+
+            try:
+                item['company_founded'] = None
+                item['company_founded'] = sel.xpath('//li[@class="founded"]/p/text()').extract()
+            except:
+                pass
+
+            items.append(item)
+        else:
+            print "no response"
+
+        return items
+
+
     def parse_school_item(self, response):
         if response:
             item = SchoolItem()
@@ -404,8 +538,8 @@ class linkedinSpider(scrapy.Spider):
                 pass
 
             try:
-                item['student/faculty_ratio'] = None
-                item['student/faculty_ratio'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[5]/text()').extract()
+                item['student_faculty_ratio'] = None
+                item['student_faculty_ratio'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[5]/text()').extract()
             except:
                 pass
 
@@ -468,7 +602,7 @@ class linkedinSpider(scrapy.Spider):
             item = response.meta
             sel = Selector(response)
 
-            items[]
+            items = []
 
             try:
                 item['students_live_place'] = []

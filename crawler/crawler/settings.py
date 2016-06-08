@@ -15,9 +15,9 @@ SPIDER_MODULES = ['crawler.spiders']
 NEWSPIDER_MODULE = 'crawler.spiders'
 HTTPERROR_ALLOWED_CODES= [521]
 ITEM_PIPELINES = {
-    'crawler.pipelines.MyImagesPipeline': 1,
+    #'crawler.pipelines.MyImagesPipeline': 1,
     'crawler.pipelines.JsonWithEncodingLinkedinPipeline': 300,
-    'crawler.pipelines.MySQLStoreLinkedinPipeline': 300,
+    #'crawler.pipelines.MySQLStoreLinkedinPipeline': 300,
 }
 LOG_LEVEL = 'INFO'
 

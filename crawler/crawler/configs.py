@@ -13,8 +13,8 @@ class LinkedInAccount(object):
     account = [
                     {'key':'877371395@qq.com', 'password':'kk20080504'},
                     {'key':'goodtime616@sina.com', 'password':'goodtime616'},
-                    {'key':'rowan.king@yandex.com', 'password':'1qaz2!QAZ@'},
-                    {'key':'jackb1988@yandex.com', 'password':'&UJM8ik,'},
+                    # {'key':'rowan.king@yandex.com', 'password':'1qaz2!QAZ@'},
+                    # {'key':'jackb1988@yandex.com', 'password':'&UJM8ik,'},
              ]
     # get accounts
     def get(self):

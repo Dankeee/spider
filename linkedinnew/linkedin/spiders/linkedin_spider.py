@@ -32,28 +32,13 @@ def try_item(x):
 class linkedinSpider(scrapy.Spider):
     """ Saving a URL tuple to start"""
     name = "linkedin"
-    allowed_domains = ["www.linkedin.com"]
+    allowed_domains = ["https://www.linkedin.com"]
 
-    start_urls = ['https://www.linkedin.com/uas/login']
+    start_urls = ['https://www.linkedin.com/vsearch/p?']
 
     def parse(self, response):
-        cap = webdriver.DesiredCapabilities.PHANTOMJS cap["phantomjs.page.settings.resourceTimeout"] = 1000 cap["phantomjs.page.settings.loadImages"] = False 
-        cap["phantomjs.page.settings.localToRemoteUrlAccessEnabled"] = True
-        driver = webdriver.PhantomJS(desired_capabilities=cap)
-
-        driver.get(start_urls[0])
-        driver.find_element_by_id("session_key-login").send_keys("877371395@qq.com")
-        driver.find_element_by_id("session_password-login").send_keys("kk20080504")
-        bttn = driver.find_element_by_id("btn-primary")
-        bttn.click()
-        time.sleep(5)
-        try:
-            driver.get("https://www.linkedin.com/")
-            identity = driver.find_element_by_id("identity")
-            name = identity.find_element_by_class_name("name")
-            print
-            print "success"
-            print name
+        fp = webdriver.FirefoxProfile(r"C:\Users\xiang\AppData\Roaming\Mozilla\Firefox\Profiles\4lhgcpdi.default")
+        driver = webdriver.Firefox(firefox_profile=fp)
         reload(sys)
         sys.setdefaultencoding('utf-8')
         collection = []
@@ -63,20 +48,20 @@ class linkedinSpider(scrapy.Spider):
             print collection
             if collection != 0:
                 for j in range(len(collection)):
-
+                    
                     keywords = collection[j]['name']
                     print keywords
                     keytype = collection[j]['type']
-
+                    
                     print keytype
                     if keytype == 1:
                         print keywords
-
-                        urls = []
+                        
+                        urls = []       
                         print "check 1"
                         #try:
                         DIRURL = "https://www.linkedin.com/vsearch/p?type=people&keywords={0}".format(keywords)
-                        driver.get(DIRURL)
+                        driver.get(DIRURL)                     
                         current_url = driver.current_url
                         if DIRURL[0:50] != current_url[0:50]:
                             driver.close()
@@ -92,8 +77,8 @@ class linkedinSpider(scrapy.Spider):
                         else:
                             item['field'] = 2
                             print "received field2"
-
-                        print "check 2"
+                      
+                        print "check 2"            
 
                         '''try:
                             n_profiles = int(re.search("([0-9]*[\.|\,])?([0-9]*[\.|\,])?[0-9]+",\
@@ -116,12 +101,12 @@ class linkedinSpider(scrapy.Spider):
                         conn.close()
 
                         #n_profiles = 1
-
-
+                        
+                    
 
                         #perfil_dict = {}
-
-
+                    
+                                    
                                 #url
                         try:
                             perfil = driver.find_element_by_xpath('//li[@class="mod result idx0 people"]')
@@ -138,28 +123,28 @@ class linkedinSpider(scrapy.Spider):
                                 urls.append(crawlurl)
                             except:
                                 pass
+                            
 
-
-
+                            
                         #name
                         try:
                             name = perfil.find_element_by_class_name("title").text
                             item["name"] = name
                         except:
                             pass
+                            
 
-
-
+                            
                         #description
                         try:
                             description = perfil.find_element_by_class_name("description").text
                             item["description"] = description
                         except:
                             pass
+                            
+                        
 
-
-
-
+                            
                         #similar
                         try:
                             similar = perfil.find_element_by_xpath('//li[@class="similar"]//a').get_attribute("href")
@@ -170,9 +155,9 @@ class linkedinSpider(scrapy.Spider):
 
 
                         #profile_image
-                        try:
+                        try:    
                             profile_img = perfil.find_element_by_class_name("entity-img").get_attribute("src")
-                            item["profile_img_s"] = profile_img#.split('/')[-1]
+                            item["profile_img_s"] = profile_img#.split('/')[-1] 
                             temp.append(profile_img)
                             Iitem["image_urls"] = temp
                             Iitem['images'] = Iitem['image_urls']
@@ -186,7 +171,7 @@ class linkedinSpider(scrapy.Spider):
                             item["worked"] = items["worked"]
                             item["education_background"] = items["education_background"]
                             item["location"] = items["location"]
-                            item["industry"] = items["industry"]
+                            item["industry"] = items["industry"]                                
                             item["current_job"] = items["current_job"]
                             item["job_0"] = items["job_0"]
                             item["job_1"] = items["job_1"]
@@ -204,11 +189,11 @@ class linkedinSpider(scrapy.Spider):
                             pass
                         print("out")
 
-
+                                                        
 
                         '''bttn = driver.find_element_by_xpath('//li[@class="next"]//a[@class="page-link"]')
                         bttn.click()
-                        time.sleep(5)'''
+                        time.sleep(5)'''   	           	
 
 
                         yield LinkedinItem(url=item["url"],name=item["name"],description=item["description"],location=item["location"],similar=item["similar"],profile_img_s=item["profile_img_s"],\
@@ -221,7 +206,7 @@ class linkedinSpider(scrapy.Spider):
                     elif keytype == 2:
                         try:
                             print keywords
-
+                            
                             urls = []
                             temp = []
                             print "check 1"
@@ -259,17 +244,17 @@ class linkedinSpider(scrapy.Spider):
                             cur.close()
                             conn.commit()
                             conn.close()
-
+                                                                                   
 
                             try:
-                                perfil = driver.find_element_by_xpath('//li[@class="mod result idx0 company"]')
+                                perfil = driver.find_element_by_xpath('//li[@class="mod result idx0 company"]')                                    
                                 crawlurl = perfil.find_element_by_class_name("title").get_attribute("href")
                                 driver.get(crawlurl)
                                 item = LinkedinItem_company()
                                 Iitem = ImageItem()
                             except:
                                 try:
-                                    perfil = driver.find_element_by_xpath('//li[@class="mod result idx1 company"]')
+                                    perfil = driver.find_element_by_xpath('//li[@class="mod result idx1 company"]')                                    
                                     crawlurl = perfil.find_element_by_class_name("title").get_attribute("href")
                                     driver.get(crawlurl)
                                     item = LinkedinItem_company()
@@ -280,7 +265,7 @@ class linkedinSpider(scrapy.Spider):
                                 bttn.click()
                             except:
                                 pass
-
+                            
                             keyfield = collection[j]['field']
                             if keyfield == 1:
                                 item['field'] = 1
@@ -290,7 +275,7 @@ class linkedinSpider(scrapy.Spider):
                                 print "received field2"
 
                             item["company_url"] = crawlurl[0:65]
-
+                            
                             try:
                                 item["company_name"] = None
                                 item["company_name"] = driver.find_element_by_class_name("name").text
@@ -300,11 +285,11 @@ class linkedinSpider(scrapy.Spider):
                                 #item["company_scale"] = basic.find_element_by_xpath('//div/p[3]').text
                             except:
                                 pass
-
+                            
                             try:
                                 item["company_logo"] = None
                                 company_logo = driver.find_element_by_class_name("image").get_attribute("src")
-                                item["company_logo"] = company_logo#.split('/')[-1]
+                                item["company_logo"] = company_logo#.split('/')[-1] 
                                 temp.append(company_logo)
                                 Iitem["image_urls"] = temp
                                 Iitem['images'] = Iitem['image_urls']
@@ -316,7 +301,7 @@ class linkedinSpider(scrapy.Spider):
                                 item["company_img"] = driver.find_element_by_class_name("hero-img").get_attribute("src")
                             except:
                                 pass
-
+                                
                             try:
                                 item["introducation"] = None
                                 item["introducation"] = driver.find_element_by_class_name("basic-info-description").text
@@ -371,10 +356,10 @@ class linkedinSpider(scrapy.Spider):
                                 more = driver.find_element_by_xpath('//a[@class="more"]')
                                 more.click()
                             except:
-                                pass
+                                pass            
 
                             try:
-
+                                     
                                 conn = MySQLdb.connect(
                                         host = '127.0.0.1',
                                         port = 3306,
@@ -396,15 +381,15 @@ class linkedinSpider(scrapy.Spider):
                                 conn.commit()
                                 conn.close()
                             except:
-                                pass
-
+                                pass            
+                            
                             yield LinkedinItem_company(company_url=item["company_url"],company_name=item["company_name"],company_field=item["company_field"],company_scale=item["company_scale"],
                                                        company_logo=item["company_logo"],company_img=item["company_img"],introducation=item["introducation"],specialties=item["specialties"],
                                                        key=keywords,website=item["website"],company_style=item["company_style"],location=item["location"],start_year=item["start_year"],field=item['field'])
 
                         except:
                             pass
-
+                        
                     else:
                         try:
                             print keywords
@@ -450,7 +435,7 @@ class linkedinSpider(scrapy.Spider):
                                     pass
                             js="var q=document.documentElement.scrollTop=500"
                             driver.execute_script(js)
-
+                            
                             try:
                                 more=driver.find_element_by_xpath("//a[@class='view-more-bar']")
                                 more.click()
@@ -459,7 +444,7 @@ class linkedinSpider(scrapy.Spider):
                                 pass
 
                             item["school_url"] = crawlurl[0:75]
-
+                                                                  
                             try:
                                 item["school_name"] = None
                                 item["school_name"] = driver.find_element_by_class_name("title").text
@@ -469,7 +454,7 @@ class linkedinSpider(scrapy.Spider):
                             try:
                                 item["school_logo"] = None
                                 school_logo = driver.find_element_by_class_name("image").get_attribute("src")
-                                item["school_logo"] = school_logo#.split('/')[-1]
+                                item["school_logo"] = school_logo#.split('/')[-1] 
                                 temp.append(school_logo)
                                 Iitem["image_urls"] = temp
                                 Iitem['images'] = Iitem['image_urls']
@@ -487,14 +472,14 @@ class linkedinSpider(scrapy.Spider):
                                 item["location"] = driver.find_element_by_class_name("subtitle").text
                             except:
                                 pass
-
+                            
                             try:
                                 editable_item = driver.find_element_by_class_name("about-wrapper")
                                 try:
                                     work_direction = editable_item.find_element_by_xpath('//ul[@class="alumni-co-facets alumni-facets-list"]//ul[@class="buckets-container"]').text
                                     item["work_direction"] = work_direction
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
 
@@ -504,7 +489,7 @@ class linkedinSpider(scrapy.Spider):
                                     work_field = editable_item.find_element_by_xpath('//ul[@class="alumni-co-facets alumni-facets-list"]/li[2]/ul[@class="buckets-container"]').text
                                     item["work_field"] = work_field
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
 
@@ -514,7 +499,7 @@ class linkedinSpider(scrapy.Spider):
                                     gen_message = editable_item.find_element_by_xpath('//div[@class="school-info-wrapper"]/dl/dd[1]').text
                                     item["gen_message"] = gen_message
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
 
@@ -524,7 +509,7 @@ class linkedinSpider(scrapy.Spider):
                                     website = editable_item.find_element_by_xpath('//div[@class="school-info-wrapper"]/dl/dd[2]/dl[1]/dd[1]').text
                                     item["website"] = website
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
 
@@ -534,7 +519,7 @@ class linkedinSpider(scrapy.Spider):
                                     school_type = editable_item.find_element_by_xpath('//div[@class="school-info-wrapper"]/dl/dd[2]/dl[2]/dd[last()-1]').text
                                     item["school_type"] = school_type
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
 
@@ -544,7 +529,7 @@ class linkedinSpider(scrapy.Spider):
                                     contact_number = editable_item.find_element_by_xpath('//div[@class="school-info-wrapper"]/dl/dd[2]/dl[1]/dd[2]').text
                                     item["contact_number"] = contact_number
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
 
@@ -554,10 +539,10 @@ class linkedinSpider(scrapy.Spider):
                                     school_year = editable_item.find_element_by_xpath('//div[@class="school-info-wrapper"]/dl/dd[2]/dl[2]/dd[last()]').text
                                     item["school_year"] = school_year
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
-
+                            
                             try:
                                 editable_item = driver.find_element_by_class_name("about-wrapper")
                                 try:
@@ -565,7 +550,7 @@ class linkedinSpider(scrapy.Spider):
                                     address2 = editable_item.find_element_by_xpath('//div[@class="school-info-wrapper"]/dl/dd[2]/dl[1]/dd[4]').text
                                     item["address"] = address1+address2
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
 
@@ -575,7 +560,7 @@ class linkedinSpider(scrapy.Spider):
                                     ts_statistic = editable_item.find_element_by_xpath('//div[@class="school-info-wrapper"]/dl/dd[3]').text
                                     item["ts_statistic"] = ts_statistic
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
 
@@ -585,7 +570,7 @@ class linkedinSpider(scrapy.Spider):
                                     finance_infor = editable_item.find_element_by_xpath('//div[@class="school-info-wrapper"]/dl/dd[4]').text
                                     item["finance_infor"] = finance_infor
                                 except:
-                                    pass
+                                    pass            
                             except:
                                 pass
 
@@ -593,7 +578,7 @@ class linkedinSpider(scrapy.Spider):
                                 stu=driver.find_element_by_xpath("//ul[@class='higher-ed-nav-menu']/li[3]/a").get_attribute("href")
                                 print stu
                                 driver.get(stu)
-                                print "ok"
+                                print "ok"                              
                                 conn = MySQLdb.connect(
                                         host = '127.0.0.1',
                                         port = 3306,
@@ -619,7 +604,7 @@ class linkedinSpider(scrapy.Spider):
                                 conn.commit()
                                 conn.close()
                             except:
-                                pass
+                                pass  
 
                             yield LinkedinItem_school(school_name=item["school_name"],school_url=item["school_url"],school_logo=item["school_logo"],school_img=item["school_img"],\
                                                     work_direction=item["work_direction"],work_field=item["work_field"],gen_message=item["gen_message"],website=item["website"],\
