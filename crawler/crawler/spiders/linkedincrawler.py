@@ -20,7 +20,7 @@ import scrapy
 import MySQLdb
 import re
 import time
-
+from crawler.getkey import get_key_from_mysql
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -54,7 +54,7 @@ class linkedinSpider(scrapy.Spider):
         bttn = self.driver.find_element_by_id("btn-primary")
         bttn.click()
         self.driver.maximize_window()
-        time.sleep(5)
+        time.sleep(3)
 
         # cookie_list = self.driver.get_cookies()
         # cookie_dict = {}
@@ -66,20 +66,40 @@ class linkedinSpider(scrapy.Spider):
         #
         #     if cookie.has_key('name') and cookie.has_key('value'):
         #         cookie_dict[cookie['name']] = cookie['value']
-
-        # return cookie_dict
-        url_list = ['http://www.linkedin.com/vsearch/p?keywords=vijay kumar&company=University of Pennsylvania']
-        self.driver.get(url_list[0])
-        WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
-        profilecards = self.driver.find_elements_by_xpath('//ol[@id="results"]/li')
-
-        for profilecard in profilecards:
-            try:
-                profile = profilecard.find_element_by_class_name("title").get_attribute("href")
-                print profile
-                yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
-            except:
-                pass
+        collection = []
+        while True:
+            time.sleep(2)
+            collection = get_key_from_mysql()
+            keytype = 1
+            if collection != 0:
+                for j in range(len(collection)):
+                    keywords = collection[j]['name']
+                    keytype = collection[j]['type']
+                    # return cookie_dict
+                    if keytype == 1:# person
+                        url_list = ['http://www.linkedin.com/vsearch/p?keywords=vijay kumar&company=University of Pennsylvania']
+                        self.driver.get(url_list[0])
+                        WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+                        profilecards = self.driver.find_elements_by_xpath('//ol[@id="results"]/li/a')
+                        for profilecard in profilecards:
+                            profile = profilecard.get_attribute("href")
+                            item = self.parse_person_item(self.driver,profile)
+                            yield ProfileItem(profile_url=item["profile_url"],profile_img=item["profile_img"],profile_name=item["profile_name"],profile_headline=item["profile_headline"],profile_location=item["profile_location"],profile_industry=item["profile_industry"],profile_current=item["profile_current"],profile_previous=item["profile_previous"],profile_education=item["profile_education"],profile_homepage=item["profile_homepage"],profile_summary_bkgd=item["profile_summary_bkgd"],profile_experience_bkgd=item["profile_experience_bkgd"],profile_honors_bkgd=item["profile_honors_bkgd"],profile_projects_bkgd=item["profile_projects_bkgd"],profile_top_skills_bkgd=item["profile_top_skills_bkgd"],profile_also_knows_bkgd=item["profile_also_knows_bkgd"],profile_education_bkgd=item["profile_education_bkgd"],profile_organizations_bkgd=item["profile_organizations_bkgd"],profile_organizations_supports=item["profile_organizations_supports"],profile_causes_cares=item["profile_causes_cares"])
+                            # yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
+                    else if keytype == 2:# company
+                        self.driver.get(url_list[0])
+                        WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+                        companycard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
+                        company = companycard.get_attribute("href")
+                        item = self.parse_company_item(self.driver,company)
+                        yield CompanyItem(company_url=item["company_url"],company_name=item["company_name"],company_logo=item["company_logo"],company_img=item["company_img"],company_description=item["company_description"],company_specialties=item["company_specialties"],company_website=item["company_website"],company_industy=item["company_industy"],company_type=item["company_type"],company_headquarters=item["company_headquarters"],company_size=item["company_size"],company_founded=item["company_founded"])
+                    else:# school
+                        self.driver.get(url_list[0])
+                        WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+                        schoolcard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
+                        school = schoolcard.get_attribute("href")
+                        item = self.parse_school_item(self.driver,school)
+                        yield ProfileItem(school_url=item["school_url"],school_name=item["school_name"],school_logo=item["school_logo"],school_img=item["school_img"],school_location=item["school_location"],genarl_information=item["genarl_information"],school_homepage=item["school_homepage"],school_email=item["school_email"],school_type=item["school_type"],contact_number=item["contact_number"],school_year=item["school_year"],school_address=item["school_address"],undergrad_students=item["undergrad_students"],graduate_students=item["graduate_students"],male=item["male"],female=item["female"],faculty=item["faculty"],admitted=item["admitted"],total_population=item["total_population"],graduated=item["graduated"],student_faculty_ratio=item["student_faculty_ratio"],tuition=item["tuition"],school_notables=item["school_notables"],students_live_place=item["students_live_place"],students_live_num=item["students_live_num"],students_work_company=item["students_work_company"],students_work_num=item["students_work_num"],students_do_field=item["students_do_field"],students_do_num=item["students_do_num"],students_studied_subject=item["students_studied_subject"],students_studied_num=item["students_studied_num"],students_skill_field=item["students_skill_field"],students_skill_num=item["students_skill_num"])
 
 
     def get_cookie_from_linkedin(self):
@@ -164,537 +184,517 @@ class linkedinSpider(scrapy.Spider):
             yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
 
 
-    def parse_person_item(self, response):
-        if response:
-            item = ProfileItem()
-            sel = Selector(response)
-            items = []
-            #item['website'] = None
-            print "person crawllllllllll"
-            try:
-                item['profile_url'] = str(response.url)
-                print item['profile_url']
-            except:
-                pass
-
-            try:
-                item['profile_img'] = None
-                item['profile_img'] = sel.xpath('//div[@id="control_gen_3"]/img/@src').extract()
-            except:
-                pass
-
-            try:
-                item['profile_name'] = None
-                item['profile_name'] = sel.xpath('//div[@id="name"]/h1/span/span/text()').extract()
-            except:
-                pass
-
-            try:
-                item['profile_headline'] = None
-                item['profile_headline'] = sel.xpath('//div[@id="headline"]/p/text()').extract()
-            except:
-                pass
-
-            try:
-                item['profile_location'] = None
-                item['profile_location'] = sel.xpath('//div[@id="location"]/dl/dd[1]/span/a/text()').extract()
-            except:
-                pass
-
-            try:
-                item['profile_industry'] = None
-                item['profile_industry'] = sel.xpath('//div[@id="location"]/dl/dd[2]/a/text()').extract()
-            except:
-                pass
-
-            try:
-                item['profile_current'] = []
-                currents = sel.xpath('//div[@id="overview-summary-current"]/td/ol/li')
-                for current in currents:
-                    ss = current.xpath('string(.)').extract()
-                    item['profile_current'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_previous'] = []
-                previouses = sel.xpath('//div[@id="overview-summary-past"]/td/ol/li')
-                for previous in previouses:
-                    ss = previous.xpath('string(.)').extract()
-                    item['profile_previous'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_education'] = []
-                educations = sel.xpath('//div[@id="overview-summary-education"]/td/ol/li')
-                for education in educations:
-                    ss = education.xpath('string(.)').extract()
-                    item['profile_education'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_education'] = []
-                educations = sel.xpath('//div[@id="overview-summary-education"]/td/ol/li')
-                for education in educations:
-                    ss = education.xpath('string(.)').extract()
-                    item['profile_education'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_homepage'] = None
-                item['profile_homepage'] = sel.xpath('//dl[@class="public-profile"]/dd/a/text()').extract()
-            except:
-                pass
-
-            try:
-                item['profile_summary_bkgd'] = None
-                item['profile_summary_bkgd'] = sel.xpath('//div[@class="summary-item-view"]/div/p/text()').extract()
-            except:
-                pass
-
-            try:
-                item['profile_experience_bkgd'] = []
-                experiences = sel.xpath('//div[@id="background-experience"]/div')
-                for experience in experiences:
-                    ss = experience.xpath('string(.)').extract()
-                    item['profile_experience_bkgd'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_honors_bkgd'] = []
-                honors = sel.xpath('//div[@id="background-honors"]/div')
-                for honor in honors:
-                    ss = honor.xpath('string(.)').extract()
-                    item['profile_honors_bkgd'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_honors_bkgd'] = []
-                honors = sel.xpath('//div[@id="background-honors"]/div')
-                for honor in honors:
-                    ss = honor.xpath('string(.)').extract()
-                    item['profile_honors_bkgd'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_projects_bkgd'] = []
-                projects = sel.xpath('//div[@id="background-projects"]/div')
-                for project in projects:
-                    ss = project.xpath('string(.)').extract()
-                    item['profile_projects_bkgd'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_top_skills_bkgd'] = []
-                skills = sel.xpath('//div[@id="profile-skills"]/ul[1]/li/span/span')
-                for skill in skills:
-                    ss = skill.xpath('string(.)').extract()
-                    item['profile_top_skills_bkgd'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_also_knows_bkgd'] = []
-                knows = sel.xpath('//div[@id="profile-skills"]/ul[2]/li/div/span/span')
-                for know in knows:
-                    ss = know.xpath('string(.)').extract()
-                    item['profile_also_knows_bkgd'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_education_bkgd'] = []
-                educations_bk = sel.xpath('//div[@id="background-education"]/div')
-                for education_bk in educations_bk:
-                    ss = education_bk.xpath('string(.)').extract()
-                    item['profile_education_bkgd'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_organizations_bkgd'] = []
-                organizations = sel.xpath('//div[@id="background-organizations"]/div')
-                for organization in organizations:
-                    ss = organization.xpath('string(.)').extract()
-                    item['profile_organizations_bkgd'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_organizations_supports'] = []
-                organizations_sup = sel.xpath('//div[@id="volunteering-organizations-view"]/div/ul/li')
-                for organization_sup in organizations_sup:
-                    ss = organization_sup.xpath('string(.)').extract()
-                    item['profile_organizations_supports'].append(ss)
-            except:
-                pass
-
-            try:
-                item['profile_causes_cares'] = []
-                causes = sel.xpath('//div[@id="volunteering-causes-view"]/div/ul/li')
-                for cause in causes:
-                    ss = cause.xpath('string(.)').extract()
-                    item['profile_causes_cares'].append(ss)
-            except:
-                pass
-
-            items.append(item)
-        else:
-            print "no response"
-
-        return items
-
-
-    def parse_company_item(self, response):
-        if response:
-            item = CompanyItem()
-            sel = Selector(response)
-            items = []
-            try:
-                item['company_url'] = str(response.url)
-                print item['company_url']
-            except:
-                pass
-
-            try:
-                item['company_name'] = None
-                item['company_name'] = sel.xpath('//div[@class="left-entity"]/div/h1/text()').extract()
-            except:
-                pass
-
-            try:
-                item['company_logo'] = None
-                item['company_logo'] = sel.xpath('//div[@class="image-wrapper"]/img/@src').extract()
-            except:
-                pass
-
-            try:
-                item['company_img'] = None
-                item['company_img'] = sel.xpath('//div[@id="stream-about-section"]/img/@src').extract()
-            except:
-                pass
-
-            try:
-                item['company_description'] = None
-                item['company_description'] = sel.xpath('//div[@class="basic-info-description"]/p/text()').extract()
-            except:
-                pass
-
-            try:
-                item['company_specialties'] = None
-                item['company_specialties'] = sel.xpath('//div[@class="specialties"]/p/text()').extract()
-            except:
-                pass
-
-            try:
-                item['company_website'] = None
-                item['company_website'] = sel.xpath('//li[@class="website"]/p/text()').extract()
-            except:
-                pass
-
-            try:
-                item['company_industy'] = None
-                item['company_industy'] = sel.xpath('//li[@class="industry"]/p/text()').extract()
-            except:
-                pass
-
-            try:
-                item['company_type'] = None
-                item['company_type'] = sel.xpath('//li[@class="type"]/p/text()').extract()
-            except:
-                pass
-
-            try:
-                item['company_headquarters'] = None
-                item['company_headquarters'] = sel.xpath('//li[@class="vcard hq"]/p/text()').extract()
-            except:
-                pass
-
-            try:
-                item['company_size'] = None
-                item['company_size'] = sel.xpath('//li[@class="company-size"]/p/text()').extract()
-            except:
-                pass
-
-            try:
-                item['company_founded'] = None
-                item['company_founded'] = sel.xpath('//li[@class="founded"]/p/text()').extract()
-            except:
-                pass
-
-            items.append(item)
-        else:
-            print "no response"
-
-        return items
-
-
-    def parse_school_item(self, response):
-        if response:
-            item = SchoolItem()
-            sel = Selector(response)
-
-            try:
-                item['school_url'] = str(response.url)
-                print item['school_url']
-            except:
-                pass
-
-            try:
-                item['school_name'] = None
-                item['school_name'] = sel.xpath('//div[@class="header"]/div[1]/div/h1/text()').extract()
-            except:
-                pass
-
-            try:
-                item['school_location'] = None
-                item['school_location'] = sel.xpath('//div[@class="header"]/div[1]/div/h4/text()').extract()
-            except:
-                pass
-
-            try:
-                item['school_logo'] = None
-                item['school_logo'] = sel.xpath('//div[@class="header"]/a/img/@src').extract()
-            except:
-                pass
-
-            try:
-                item['school_img'] = None
-                item['school_img'] = sel.xpath('//a[@id="cover-photo-show-treasury"]/img/@src').extract()
-            except:
-                pass
-
-            try:
-                item['genarl_information'] = None
-                item['genarl_information'] = sel.xpath('//dd[@class="full-description"]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['school_homepage'] = None
-                item['school_homepage'] = sel.xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[1]/a/text()').extract()
-            except:
-                pass
-
-            try:
-                item['school_email'] = None
-                item['school_email'] = sel.xpath('//dl[@class="school-meta-data"]/dd[2]/dl[2]/dd[1]/a/text()').extract()
-            except:
-                pass
-
-            try:
-                item['school_type'] = None
-                item['school_type'] = sel.xpath('//dl[@class="school-meta-data"]/dd[2]/dl[2]/dd[2]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['contact_number'] = None
-                item['contact_number'] = sel.xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[2]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['school_year'] = None
-                item['school_year'] = sel.xpath('//dl[@class="school-meta-data"]/dd[2]/dl[2]/dd[3]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['school_address'] = None
-                item['school_address'] = sel.xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[3]/text()').extract() + sel.xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[4]/text()').extract() + sel.xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[5]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['undergrad_students'] = None
-                item['undergrad_students'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[1]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['graduate_students'] = None
-                item['graduate_students'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[2]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['faculty'] = None
-                item['faculty'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[3]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['total_population'] = None
-                item['total_population'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[4]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['student_faculty_ratio'] = None
-                item['student_faculty_ratio'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[5]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['male'] = None
-                item['male'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[2]/dd[1]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['female'] = None
-                item['female'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[2]/dd[2]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['admitted'] = None
-                item['admitted'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[2]/dd[3]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['graduated'] = None
-                item['graduated'] = sel.xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[1]/text()').extract()
-            except:
-                pass
-
-            try:
-                item['tuition'] = None
-                item['tuition'] = sel.xpath('//dl[@class="school-meta-data"]/dd[4]/dl[2]/text()').extract()
-            except:
-                pass
-
-            yield scrapy.Request(response.url.replace('school','notable'), headers=self.headers, cookies=self.cookdic, meta=item, timeout=self.timeout, callback=self.parse_school_notable)
-        else:
-            print "no response"
-
-
-    def parse_school_notable(self, response):
-        if response:
-            item = response.meta
-            sel = Selector(response)
-
-            try:
-                item['school_notables'] = []
-                notables = sel.xpath('//ul[@id="my-feed-post"]/li/div/div[1]/a')
-                for notable in notables:
-                    ss = notable.xpath('//@href').extract()
-                    item['school_notables'].append(ss)
-            except:
-                pass
-
-            yield scrapy.Request(response.url.replace('notable','alumni'), headers=self.headers, cookies=self.cookdic, meta=item, timeout=self.timeout, callback=self.parse_school_notable)
-        else:
-            print "no response"
-
-
-    def parse_school_alumni(self, response):
-        if response:
-            item = response.meta
-            sel = Selector(response)
-
-            items = []
-
-            try:
-                item['students_live_place'] = []
-                live_places = sel.xpath('//div[@class="carousel-content"]/ul/li[1]/ul/li')
-                for live_place in live_places:
-                    ss = live_place.xpath('//a/div[2]/p[1]/text()').extract()
-                    item['students_live_place'].append(ss)
-            except:
-                pass
-
-            try:
-                item['students_live_num'] = []
-                live_num = sel.xpath('//div[@class="carousel-content"]/ul/li[1]/ul/li')
-                for num in live_num:
-                    ss = num.xpath('//a/div[2]/p[2]/text()').extract()
-                    item['students_live_place'].append(ss)
-            except:
-                pass
-
-            try:
-                item['students_work_company'] = []
-                companys= sel.xpath('//div[@class="carousel-content"]/ul/li[2]/ul/li')
-                for company in companys:
-                    ss = company.xpath('//a/div[2]/p[1]/text()').extract()
-                    item['students_work_company'].append(ss)
-            except:
-                pass
-
-            try:
-                item['students_work_num'] = []
-                work_num= sel.xpath('//div[@class="carousel-content"]/ul/li[2]/ul/li')
-                for num in work_num:
-                    ss = num.xpath('//a/div[2]/p[2]/text()').extract()
-                    item['students_work_num'].append(ss)
-            except:
-                pass
-
-            try:
-                item['students_do_field'] = []
-                do_field= sel.xpath('//div[@class="carousel-content"]/ul/li[3]/ul/li')
-                for field in do_field:
-                    ss = field.xpath('//a/div[2]/p[1]/text()').extract()
-                    item['students_do_field'].append(ss)
-            except:
-                pass
-
-            try:
-                item['students_do_num'] = []
-                do_num= sel.xpath('//div[@class="carousel-content"]/ul/li[3]/ul/li')
-                for num in do_num:
-                    ss = num.xpath('//a/div[2]/p[2]/text()').extract()
-                    item['students_do_num'].append(ss)
-            except:
-                pass
-
-            try:
-                item['students_studied_subject'] = []
-                subjects= sel.xpath('//div[@class="carousel-content"]/ul/li[4]/ul/li')
-                for subject in subjects:
-                    ss = subject.xpath('//a/div[2]/p[1]/text()').extract()
-                    item['students_studied_subject'].append(ss)
-            except:
-                pass
-
-            try:
-                item['students_studied_num'] = []
-                studied_num= sel.xpath('//div[@class="carousel-content"]/ul/li[4]/ul/li')
-                for num in studied_num:
-                    ss = num.xpath('//a/div[2]/p[2]/text()').extract()
-                    item['students_studied_num'].append(ss)
-            except:
-                pass
-
-            try:
-                item['students_skill_field'] = []
-                skills= sel.xpath('//div[@class="carousel-content"]/ul/li[5]/ul/li')
-                for skill in skills:
-                    ss = skill.xpath('//a/div[2]/p[1]/text()').extract()
-                    item['students_skill_field'].append(ss)
-            except:
-                pass
-
-            try:
-                item['students_skill_num'] = []
-                skill_num= sel.xpath('//div[@class="carousel-content"]/ul/li[5]/ul/li')
-                for num in skill_num:
-                    ss = num.xpath('//a/div[2]/p[2]/text()').extract()
-                    item['students_skill_num'].append(ss)
-            except:
-                pass
-
-            items.append(item)
-        else:
-            print "no response"
-        return items
+    def parse_person_item(self,driver,url):
+        item = ProfileItem()
+        # items = []
+        self.driver.get(url)
+        time.sleep(3)
+        #item['website'] = None
+        print "person crawllllllllll"
+        try:
+            item['profile_url'] = self.driver.current_url
+            print item['profile_url']
+        except:
+            pass
+
+        try:# null
+            item['profile_img'] = None
+            item['profile_img'] = self.driver.find_element_by_xpath('//div[@class="profile-picture"]/img').get_attribute("src")
+        except:
+            pass
+
+        try:
+            item['profile_name'] = None
+            item['profile_name'] = self.driver.find_element_by_xpath('//div[@id="name"]/h1/span/span').text
+        except:
+            pass
+
+        try:
+            item['profile_headline'] = None
+            item['profile_headline'] = self.driver.find_element_by_xpath('//div[@id="headline"]/p').text
+        except:
+            pass
+
+        try:
+            item['profile_location'] = None
+            item['profile_location'] = self.driver.find_element_by_xpath('//div[@id="location"]/dl/dd[1]/span/a').text
+        except:
+            pass
+
+        try:
+            item['profile_industry'] = None
+            item['profile_industry'] = self.driver.find_element_by_xpath('//div[@id="location"]/dl/dd[2]/a').text
+        except:
+            pass
+
+        try:# []
+            item['profile_current'] = []
+            currents = self.driver.find_elements_by_xpath('//tr[@id="overview-summary-current"]/td/ol/li')
+            for current in currents:
+                ss = current.text
+                item['profile_current'].append(ss)
+        except:
+            pass
+
+        try:# []
+            item['profile_previous'] = []
+            previouses = self.driver.find_elements_by_xpath('//tr[@id="overview-summary-past"]/td/ol/li')
+            for previous in previouses:
+                ss = previous.text
+                item['profile_previous'].append(ss)
+        except:
+            pass
+
+        try:# []
+            item['profile_education'] = []
+            educations = self.driver.find_elements_by_xpath('//tr[@id="overview-summary-education"]/td/ol/li')
+            for education in educations:
+                ss = education.text
+                item['profile_education'].append(ss)
+        except:
+            pass
+
+        try:
+            item['profile_homepage'] = None
+            item['profile_homepage'] = self.driver.find_element_by_xpath('//dl[@class="public-profile"]/dd/a').text
+        except:
+            pass
+
+        try:
+            item['profile_summary_bkgd'] = None
+            item['profile_summary_bkgd'] = self.driver.find_element_by_xpath('//div[@id="summary-item-view"]/div/p').text
+        except:
+            pass
+
+        try:
+            item['profile_experience_bkgd'] = []
+            experiences = self.driver.find_elements_by_xpath('//div[@id="background-experience"]/div')
+            for experience in experiences:
+                ss = experience.text
+                item['profile_experience_bkgd'].append(ss)
+        except:
+            pass
+
+        try:
+            item['profile_honors_bkgd'] = []
+            honors = self.driver.find_elements_by_xpath('//div[@id="background-honors"]/div')
+            for honor in honors:
+                ss = honor.text
+                item['profile_honors_bkgd'].append(ss)
+        except:
+            pass
+
+        try:
+            item['profile_projects_bkgd'] = []
+            projects = self.driver.find_elements_by_xpath('//div[@id="background-projects"]/div')
+            for project in projects:
+                ss = project.text
+                item['profile_projects_bkgd'].append(ss)
+        except:
+            pass
+
+        try:
+            item['profile_top_skills_bkgd'] = []
+            skills = self.driver.find_elements_by_xpath('//div[@id="profile-skills"]/ul[1]/li/span/span')
+            for skill in skills:
+                ss = skill.text
+                item['profile_top_skills_bkgd'].append(ss)
+        except:
+            pass
+
+        try:
+            item['profile_also_knows_bkgd'] = []
+            knows = self.driver.find_elements_by_xpath('//div[@id="profile-skills"]/ul[2]/li/div/span/span')
+            for know in knows:
+                ss = know.text
+                item['profile_also_knows_bkgd'].append(ss)
+        except:
+            pass
+
+        try:
+            item['profile_education_bkgd'] = []
+            educations_bk = self.driver.find_elements_by_xpath('//div[@id="background-education"]/div')
+            for education_bk in educations_bk:
+                ss = education_bk.text
+                item['profile_education_bkgd'].append(ss)
+        except:
+            pass
+
+        try:
+            item['profile_organizations_bkgd'] = []
+            organizations = self.driver.find_elements_by_xpath('//div[@id="background-organizations"]/div')
+            for organization in organizations:
+                ss = organization.text
+                item['profile_organizations_bkgd'].append(ss)
+        except:
+            pass
+
+        try:
+            item['profile_organizations_supports'] = []
+            organizations_sup = self.driver.find_elements_by_xpath('//div[@id="volunteering-organizations-view"]/div/ul/li')
+            for organization_sup in organizations_sup:
+                ss = organization_sup.text
+                item['profile_organizations_supports'].append(ss)
+        except:
+            pass
+
+        try:
+            item['profile_causes_cares'] = []
+            causes = self.driver.find_elements_by_xpath('//div[@id="volunteering-causes-view"]/div/ul/li')
+            for cause in causes:
+                ss = cause.text
+                item['profile_causes_cares'].append(ss)
+        except:
+            pass
+
+        # items.append(item)
+
+        return item
+
+
+    def parse_company_item(self,driver,url):
+        self.driver.get(url)
+        time.sleep(3)
+        item = CompanyItem()
+        # sel = Selector(response)
+        # items = []
+        try:
+            item['company_url'] = self.driver.current_url
+            print item['company_url']
+        except:
+            pass
+
+        try:
+            item['company_name'] = None
+            item['company_name'] = self.driver.find_element_by_xpath('//div[@class="left-entity"]/div/h1').text
+        except:
+            pass
+
+        try:
+            item['company_logo'] = None
+            item['company_logo'] = self.driver.find_element_by_xpath('//div[@class="image-wrapper"]/img').get_attribute("src")
+        except:
+            pass
+
+        try:
+            item['company_img'] = None
+            item['company_img'] = self.driver.find_element_by_xpath('//div[@id="stream-about-section"]/img').get_attribute("src")
+        except:
+            pass
+
+        try:
+            item['company_description'] = None
+            item['company_description'] = self.driver.find_element_by_xpath('//div[@class="basic-info-description"]/p').text
+        except:
+            pass
+
+        try:
+            item['company_specialties'] = None
+            item['company_specialties'] = self.driver.find_element_by_xpath('//div[@class="specialties"]/p').text
+        except:
+            pass
+
+        try:
+            item['company_website'] = None
+            item['company_website'] = self.driver.find_element_by_xpath('//li[@class="website"]/p').text
+        except:
+            pass
+
+        try:
+            item['company_industy'] = None
+            item['company_industy'] = self.driver.find_element_by_xpath('//li[@class="industry"]/p').text
+        except:
+            pass
+
+        try:
+            item['company_type'] = None
+            item['company_type'] = self.driver.find_element_by_xpath('//li[@class="type"]/p').text
+        except:
+            pass
+
+        try:
+            item['company_headquarters'] = None
+            item['company_headquarters'] = self.driver.find_element_by_xpath('//li[@class="vcard hq"]/p').text
+        except:
+            pass
+
+        try:
+            item['company_size'] = None
+            item['company_size'] = self.driver.find_element_by_xpath('//li[@class="company-size"]/p').text
+        except:
+            pass
+
+        try:
+            item['company_founded'] = None
+            item['company_founded'] = self.driver.find_element_by_xpath('//li[@class="founded"]/p').text
+        except:
+            pass
+
+        # items.append(item)
+
+        return item
+
+
+    def parse_school_item(self,driver,url):
+        self.driver.get(url)
+        time.sleep(3)
+        item = SchoolItem()
+        # sel = Selector(response)
+
+        try:
+            item['school_url'] = self.driver.current_url
+            print item['school_url']
+        except:
+            pass
+
+        try:
+            item['school_name'] = None
+            item['school_name'] = self.driver.find_element_by_xpath('//div[@class="header"]/div[1]/div/h1').text
+        except:
+            pass
+
+        try:
+            item['school_location'] = None
+            item['school_location'] = self.driver.find_element_by_xpath('//div[@class="header"]/div[1]/div/h4').text
+        except:
+            pass
+
+        try:
+            item['school_logo'] = None
+            item['school_logo'] = self.driver.find_element_by_xpath('//div[@class="header"]/a/img').get_attribute("src")
+        except:
+            pass
+
+        try:
+            item['school_img'] = None
+            item['school_img'] = self.driver.find_element_by_xpath('//a[@id="cover-photo-show-treasury"]/img').get_attribute("src")
+        except:
+            pass
+
+        try:
+            item['genarl_information'] = None
+            item['genarl_information'] = self.driver.find_element_by_xpath('//dd[@class="full-description"]').text
+        except:
+            pass
+
+        try:
+            item['school_homepage'] = None
+            item['school_homepage'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[1]/a').text
+        except:
+            pass
+
+        try:
+            item['school_email'] = None
+            item['school_email'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[2]/dd[1]/a').text
+        except:
+            pass
+
+        try:
+            item['school_type'] = None
+            item['school_type'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[2]/dd[2]').text
+        except:
+            pass
+
+        try:
+            item['contact_number'] = None
+            item['contact_number'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[2]').text
+        except:
+            pass
+
+        try:
+            item['school_year'] = None
+            item['school_year'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[2]/dd[3]').text
+        except:
+            pass
+
+        try:
+            item['school_address'] = None
+            item['school_address'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[3]').text + self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[4]').text + self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[5]').text
+        except:
+            pass
+
+        try:
+            item['undergrad_students'] = None
+            item['undergrad_students'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[1]').text
+        except:
+            pass
+
+        try:
+            item['graduate_students'] = None
+            item['graduate_students'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[2]').text
+        except:
+            pass
+
+        try:
+            item['faculty'] = None
+            item['faculty'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[3]').text
+        except:
+            pass
+
+        try:
+            item['total_population'] = None
+            item['total_population'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[4]').text
+        except:
+            pass
+
+        try:
+            item['student_faculty_ratio'] = None
+            item['student_faculty_ratio'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[5]').text
+        except:
+            pass
+
+        try:
+            item['male'] = None
+            item['male'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[2]/dd[1]').text
+        except:
+            pass
+
+        try:
+            item['female'] = None
+            item['female'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[2]/dd[2]').text
+        except:
+            pass
+
+        try:
+            item['admitted'] = None
+            item['admitted'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[2]/dd[3]').text
+        except:
+            pass
+
+        try:
+            item['graduated'] = None
+            item['graduated'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[1]').text
+        except:
+            pass
+
+        try:
+            item['tuition'] = None
+            item['tuition'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[4]/dl[2]').text
+        except:
+            pass
+
+        try:
+            schoolnotable = self.driver.find_element_by_xpath('//ul[@class="higher-ed-nav-menu"]/li[2]')
+            schoolnotable.click()
+            time.sleep(3)
+        except:
+            pass
+
+        # def parse_school_notable(self, response):
+        #     if response:
+        #         item = response.meta
+        #         sel = Selector(response)
+
+        try:
+            item['school_notables'] = []
+            notables = self.driver.find_elements_by_xpath('//ul[@id="my-feed-post"]/li/div/div[1]/a')
+            for notable in notables:
+                ss = notable.get_attribute("href")
+                item['school_notables'].append(ss)
+        except:
+            pass
+
+        try:
+            schoolalumni = self.driver.find_element_by_xpath('//ul[@class="higher-ed-nav-menu"]/li[3]')
+            schoolalumni.click()
+            time.sleep(3)
+        except:
+            pass
+        # def parse_school_alumni(self, response):
+        #     if response:
+        #         item = response.meta
+        #         sel = Selector(response)
+        #
+        #         items = []
+
+        try:
+            item['students_live_place'] = []
+            live_places = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[1]/ul/li')
+            for live_place in live_places:
+                ss = live_place.find_element_by_xpath('//a/div[2]/p[1]').text
+                item['students_live_place'].append(ss)
+        except:
+            pass
+
+        try:
+            item['students_live_num'] = []
+            live_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[1]/ul/li')
+            for num in live_num:
+                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
+                item['students_live_place'].append(ss)
+        except:
+            pass
+
+        try:
+            item['students_work_company'] = []
+            companys = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[2]/ul/li')
+            for company in companys:
+                ss = company.find_element_by_xpath('//a/div[2]/p[1]').text
+                item['students_work_company'].append(ss)
+        except:
+            pass
+
+        try:
+            item['students_work_num'] = []
+            work_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[2]/ul/li')
+            for num in work_num:
+                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
+                item['students_work_num'].append(ss)
+        except:
+            pass
+
+        try:
+            item['students_do_field'] = []
+            do_field = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[3]/ul/li')
+            for field in do_field:
+                ss = field.find_element_by_xpath('//a/div[2]/p[1]').text
+                item['students_do_field'].append(ss)
+        except:
+            pass
+
+        try:
+            item['students_do_num'] = []
+            do_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[3]/ul/li')
+            for num in do_num:
+                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
+                item['students_do_num'].append(ss)
+        except:
+            pass
+
+        try:
+            item['students_studied_subject'] = []
+            subjects = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[4]/ul/li')
+            for subject in subjects:
+                ss = subject.find_element_by_xpath('//a/div[2]/p[1]').text
+                item['students_studied_subject'].append(ss)
+        except:
+            pass
+
+        try:
+            item['students_studied_num'] = []
+            studied_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[4]/ul/li')
+            for num in studied_num:
+                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
+                item['students_studied_num'].append(ss)
+        except:
+            pass
+
+        try:
+            item['students_skill_field'] = []
+            skills = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[5]/ul/li')
+            for skill in skills:
+                ss = skill.find_element_by_xpath('//a/div[2]/p[1]').text
+                item['students_skill_field'].append(ss)
+        except:
+            pass
+
+        try:
+            item['students_skill_num'] = []
+            skill_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[5]/ul/li')
+            for num in skill_num:
+                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
+                item['students_skill_num'].append(ss)
+        except:
+            pass
+
+        return item

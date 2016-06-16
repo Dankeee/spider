@@ -27,7 +27,7 @@ IMAGES_EXPIRES = 15
 
 COOKIES_ENABLED=False
 
-DOWNLOAD_DELAY=5
+DOWNLOAD_DELAY=2
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'crawler (+http://www.yourdomain.com)'
 
