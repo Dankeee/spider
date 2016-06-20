@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from scrapy.http import Request
-from crawler.configs import LinkedInAccount
+from crawler.configs import LinkedInAccount,LinkedInUserAgent
 import cPickle as pickle
 import codecs
 import os
@@ -20,7 +20,8 @@ import scrapy
 import MySQLdb
 import re
 import time
-from crawler.getkey import get_key_from_mysql
+import random
+from crawler.gettask import get_task_from_mysql
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -29,6 +30,7 @@ class linkedinSpider(scrapy.Spider):
     name = "linkedincrawl"
     allowed_domains = ["www.linkedin.com"]
     account = LinkedInAccount().get()
+    ua = LinkedInUserAgent().get()
     start_urls = ['https://www.linkedin.com/uas/login']
     def __init__(self):
         self.key = self.account['key']
@@ -38,7 +40,7 @@ class linkedinSpider(scrapy.Spider):
         cap["phantomjs.page.settings.resourceTimeout"] = 1000
         cap["phantomjs.page.settings.loadImages"] = False
         cap["phantomjs.page.settings.localToRemoteUrlAccessEnabled"] = True
-        cap["phantomjs.page.settings.userAgent"] = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36'
+        cap["phantomjs.page.settings.userAgent"] = self.ua
         self.driver = webdriver.PhantomJS(desired_capabilities=cap)
         self.timeout = 5
 
@@ -47,15 +49,14 @@ class linkedinSpider(scrapy.Spider):
         return [Request("https://www.linkedin.com/uas/login", callback = self.login)]
 
     def login(self, response):
-
         self.driver.get(self.url_login)
         self.driver.find_element_by_id("session_key-login").send_keys(self.key)
         self.driver.find_element_by_id("session_password-login").send_keys(self.password)
         bttn = self.driver.find_element_by_id("btn-primary")
         bttn.click()
         self.driver.maximize_window()
-        time.sleep(3)
-
+        time.sleep(random.uniform(2,4))
+        print "test point 0"
         # cookie_list = self.driver.get_cookies()
         # cookie_dict = {}
         # for cookie in cookie_list:
@@ -66,40 +67,105 @@ class linkedinSpider(scrapy.Spider):
         #
         #     if cookie.has_key('name') and cookie.has_key('value'):
         #         cookie_dict[cookie['name']] = cookie['value']
-        collection = []
+        task = []
         while True:
-            time.sleep(2)
-            collection = get_key_from_mysql()
-            keytype = 1
-            if collection != 0:
-                for j in range(len(collection)):
-                    keywords = collection[j]['name']
-                    keytype = collection[j]['type']
-                    # return cookie_dict
-                    if keytype == 1:# person
-                        url_list = ['http://www.linkedin.com/vsearch/p?keywords=vijay kumar&company=University of Pennsylvania']
-                        self.driver.get(url_list[0])
+            time.sleep(random.uniform(1,3))
+            task = get_task_from_mysql()
+            print "test point 1"
+            if task != 0:
+                task_url = task['url']
+                task_type = task['task_type']
+                # return cookie_dict
+                print "test point 2"
+                if task_type == 1:
+                    # person
+                    try:
+                        self.driver.get(task_url)
                         WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+                        print "test point 3"
+                        conn = MySQLdb.connect(
+                            host = '127.0.0.1',
+                            port = 3306,
+                            db = 'linkedin',
+                            user = 'root',
+                            passwd = 'bupt123456',
+                            cursorclass = MySQLdb.cursors.DictCursor,
+                            charset = 'utf8',
+                            use_unicode = True
+                            )
+                        conn.set_character_set('utf8')
+                        cur = conn.cursor()
+                        cur.execute("""update searchinfo set state = 2 where state = 1 and url = %s""", task_url)
+                        cur.close()
+                        conn.commit()
+                        conn.close()
+                        print "test point 4"
                         profilecards = self.driver.find_elements_by_xpath('//ol[@id="results"]/li/a')
                         for profilecard in profilecards:
                             profile = profilecard.get_attribute("href")
                             item = self.parse_person_item(self.driver,profile)
                             yield ProfileItem(profile_url=item["profile_url"],profile_img=item["profile_img"],profile_name=item["profile_name"],profile_headline=item["profile_headline"],profile_location=item["profile_location"],profile_industry=item["profile_industry"],profile_current=item["profile_current"],profile_previous=item["profile_previous"],profile_education=item["profile_education"],profile_homepage=item["profile_homepage"],profile_summary_bkgd=item["profile_summary_bkgd"],profile_experience_bkgd=item["profile_experience_bkgd"],profile_honors_bkgd=item["profile_honors_bkgd"],profile_projects_bkgd=item["profile_projects_bkgd"],profile_top_skills_bkgd=item["profile_top_skills_bkgd"],profile_also_knows_bkgd=item["profile_also_knows_bkgd"],profile_education_bkgd=item["profile_education_bkgd"],profile_organizations_bkgd=item["profile_organizations_bkgd"],profile_organizations_supports=item["profile_organizations_supports"],profile_causes_cares=item["profile_causes_cares"])
-                            # yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
-                    else if keytype == 2:# company
-                        self.driver.get(url_list[0])
+                    except:
+                        pass
+                        # yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
+                elif task_type == 2:
+                    # company
+                    try:
+                        self.driver.get(task_url)
                         WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+                        print "test point 5"
+                        conn = MySQLdb.connect(
+                            host = '127.0.0.1',
+                            port = 3306,
+                            db = 'linkedin',
+                            user = 'root',
+                            passwd = 'bupt123456',
+                            cursorclass = MySQLdb.cursors.DictCursor,
+                            charset = 'utf8',
+                            use_unicode = True
+                            )
+                        conn.set_character_set('utf8')
+                        cur = conn.cursor()
+                        cur.execute("""update searchinfo set state = 2 where state = 1 and url = %s""", task_url)
+                        cur.close()
+                        conn.commit()
+                        conn.close()
+                        print "test point 6"
                         companycard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
                         company = companycard.get_attribute("href")
                         item = self.parse_company_item(self.driver,company)
                         yield CompanyItem(company_url=item["company_url"],company_name=item["company_name"],company_logo=item["company_logo"],company_img=item["company_img"],company_description=item["company_description"],company_specialties=item["company_specialties"],company_website=item["company_website"],company_industy=item["company_industy"],company_type=item["company_type"],company_headquarters=item["company_headquarters"],company_size=item["company_size"],company_founded=item["company_founded"])
-                    else:# school
-                        self.driver.get(url_list[0])
+                    except:
+                        pass
+                else:
+                    # school
+                    try:
+                        self.driver.get(task_url)
                         WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+                        print "test point 7"
+                        conn = MySQLdb.connect(
+                            host = '127.0.0.1',
+                            port = 3306,
+                            db = 'linkedin',
+                            user = 'root',
+                            passwd = 'bupt123456',
+                            cursorclass = MySQLdb.cursors.DictCursor,
+                            charset = 'utf8',
+                            use_unicode = True
+                            )
+                        conn.set_character_set('utf8')
+                        cur = conn.cursor()
+                        cur.execute("""update searchinfo set state = 2 where state = 1 and url = %s""", task_url)
+                        cur.close()
+                        conn.commit()
+                        conn.close()
+                        print "test point 8"
                         schoolcard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
                         school = schoolcard.get_attribute("href")
                         item = self.parse_school_item(self.driver,school)
                         yield ProfileItem(school_url=item["school_url"],school_name=item["school_name"],school_logo=item["school_logo"],school_img=item["school_img"],school_location=item["school_location"],genarl_information=item["genarl_information"],school_homepage=item["school_homepage"],school_email=item["school_email"],school_type=item["school_type"],contact_number=item["contact_number"],school_year=item["school_year"],school_address=item["school_address"],undergrad_students=item["undergrad_students"],graduate_students=item["graduate_students"],male=item["male"],female=item["female"],faculty=item["faculty"],admitted=item["admitted"],total_population=item["total_population"],graduated=item["graduated"],student_faculty_ratio=item["student_faculty_ratio"],tuition=item["tuition"],school_notables=item["school_notables"],students_live_place=item["students_live_place"],students_live_num=item["students_live_num"],students_work_company=item["students_work_company"],students_work_num=item["students_work_num"],students_do_field=item["students_do_field"],students_do_num=item["students_do_num"],students_studied_subject=item["students_studied_subject"],students_studied_num=item["students_studied_num"],students_skill_field=item["students_skill_field"],students_skill_num=item["students_skill_num"])
+                    except:
+                        pass
 
 
     def get_cookie_from_linkedin(self):
@@ -110,7 +176,7 @@ class linkedinSpider(scrapy.Spider):
         bttn = self.driver.find_element_by_id("btn-primary")
         bttn.click()
         self.driver.maximize_window()
-        time.sleep(5)
+        time.sleep(random.uniform(2,4))
 
         cookie_list = self.driver.get_cookies()
         cookie_dict = {}
@@ -188,7 +254,7 @@ class linkedinSpider(scrapy.Spider):
         item = ProfileItem()
         # items = []
         self.driver.get(url)
-        time.sleep(3)
+        time.sleep(random.uniform(2,4))
         #item['website'] = None
         print "person crawllllllllll"
         try:
@@ -354,7 +420,7 @@ class linkedinSpider(scrapy.Spider):
 
     def parse_company_item(self,driver,url):
         self.driver.get(url)
-        time.sleep(3)
+        time.sleep(random.uniform(2,4))
         item = CompanyItem()
         # sel = Selector(response)
         # items = []
@@ -437,7 +503,7 @@ class linkedinSpider(scrapy.Spider):
 
     def parse_school_item(self,driver,url):
         self.driver.get(url)
-        time.sleep(3)
+        time.sleep(random.uniform(2,4))
         item = SchoolItem()
         # sel = Selector(response)
 
@@ -576,7 +642,7 @@ class linkedinSpider(scrapy.Spider):
         try:
             schoolnotable = self.driver.find_element_by_xpath('//ul[@class="higher-ed-nav-menu"]/li[2]')
             schoolnotable.click()
-            time.sleep(3)
+            time.sleep(random.uniform(2,4))
         except:
             pass
 
@@ -597,7 +663,7 @@ class linkedinSpider(scrapy.Spider):
         try:
             schoolalumni = self.driver.find_element_by_xpath('//ul[@class="higher-ed-nav-menu"]/li[3]')
             schoolalumni.click()
-            time.sleep(3)
+            time.sleep(random.uniform(2,4))
         except:
             pass
         # def parse_school_alumni(self, response):

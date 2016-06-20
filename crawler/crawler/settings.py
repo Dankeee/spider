@@ -17,7 +17,7 @@ HTTPERROR_ALLOWED_CODES= [521]
 ITEM_PIPELINES = {
     #'crawler.pipelines.MyImagesPipeline': 1,
     'crawler.pipelines.JsonWithEncodingLinkedinPipeline': 300,
-    #'crawler.pipelines.MySQLStoreLinkedinPipeline': 300,
+    'crawler.pipelines.MySQLStoreLinkedinPipeline': 300,
 }
 LOG_LEVEL = 'INFO'
 
@@ -28,6 +28,7 @@ IMAGES_EXPIRES = 15
 COOKIES_ENABLED=False
 
 DOWNLOAD_DELAY=2
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'crawler (+http://www.yourdomain.com)'
 

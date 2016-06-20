@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import MySQLdb
 
-def get_key_from_mysql():
+def get_task_from_mysql():
     conn = MySQLdb.connect(
             host = '127.0.0.1',
             port = 3306,
@@ -13,8 +13,13 @@ def get_key_from_mysql():
             use_unicode = True
             )
     cur = conn.cursor()
-    cur.execute("select keytype, keywords, company, school from searchinfo where state = 0")
-    collect = cur.fetchall()
+    print "test point 24"
+    cur.execute("begin transaction1")
+    cur.execute("select url, task_type, from searchinfo where task_status = 0 for update limit 1")
+    cur.execute("update searchinfo set task_status = 1 where task_status = 0 limit 1")
+    cur.execute("comit transaction1")
+    print "test point 25"
+    collect = cur.fetchone()
     cur.close()
     conn.commit()
     conn.close()
