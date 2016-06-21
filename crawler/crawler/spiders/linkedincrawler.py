@@ -10,14 +10,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from scrapy.http import Request
-from crawler.configs import LinkedInAccount,LinkedInUserAgent
+from crawler.configs import LinkedInAccount,LinkedInUserAgent,MySQLConnect
 import cPickle as pickle
 import codecs
 import os
 import sys
 import string
 import scrapy
-import MySQLdb
 import re
 import time
 import random
@@ -41,7 +40,7 @@ class linkedinSpider(scrapy.Spider):
         cap["phantomjs.page.settings.loadImages"] = False
         cap["phantomjs.page.settings.localToRemoteUrlAccessEnabled"] = True
         cap["phantomjs.page.settings.userAgent"] = self.ua
-        self.driver = webdriver.PhantomJS(desired_capabilities=cap)
+        self.driver = webdriver.PhantomJS(r'C:\Python27\phantomjs-2.0.0-windows\bin\phantomjs.exe',desired_capabilities=cap)
         self.timeout = 5
 
 
@@ -72,30 +71,22 @@ class linkedinSpider(scrapy.Spider):
             time.sleep(random.uniform(1,3))
             task = get_task_from_mysql()
             print "test point 1"
-            if task != 0:
+            if task:
                 task_url = task['url']
                 task_type = task['task_type']
                 # return cookie_dict
                 print "test point 2"
                 if task_type == 1:
                     # person
-                    try:
+                        print self.driver.current_url
                         self.driver.get(task_url)
+                        print self.driver.current_url
                         WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
                         print "test point 3"
-                        conn = MySQLdb.connect(
-                            host = '127.0.0.1',
-                            port = 3306,
-                            db = 'linkedin',
-                            user = 'root',
-                            passwd = 'bupt123456',
-                            cursorclass = MySQLdb.cursors.DictCursor,
-                            charset = 'utf8',
-                            use_unicode = True
-                            )
-                        conn.set_character_set('utf8')
+                        conn = MySQLConnect().getconnect()
+                        print "test point 3.1"
                         cur = conn.cursor()
-                        cur.execute("""update searchinfo set state = 2 where state = 1 and url = %s""", task_url)
+                        cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
                         cur.close()
                         conn.commit()
                         conn.close()
@@ -105,8 +96,7 @@ class linkedinSpider(scrapy.Spider):
                             profile = profilecard.get_attribute("href")
                             item = self.parse_person_item(self.driver,profile)
                             yield ProfileItem(profile_url=item["profile_url"],profile_img=item["profile_img"],profile_name=item["profile_name"],profile_headline=item["profile_headline"],profile_location=item["profile_location"],profile_industry=item["profile_industry"],profile_current=item["profile_current"],profile_previous=item["profile_previous"],profile_education=item["profile_education"],profile_homepage=item["profile_homepage"],profile_summary_bkgd=item["profile_summary_bkgd"],profile_experience_bkgd=item["profile_experience_bkgd"],profile_honors_bkgd=item["profile_honors_bkgd"],profile_projects_bkgd=item["profile_projects_bkgd"],profile_top_skills_bkgd=item["profile_top_skills_bkgd"],profile_also_knows_bkgd=item["profile_also_knows_bkgd"],profile_education_bkgd=item["profile_education_bkgd"],profile_organizations_bkgd=item["profile_organizations_bkgd"],profile_organizations_supports=item["profile_organizations_supports"],profile_causes_cares=item["profile_causes_cares"])
-                    except:
-                        pass
+
                         # yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
                 elif task_type == 2:
                     # company
@@ -114,19 +104,9 @@ class linkedinSpider(scrapy.Spider):
                         self.driver.get(task_url)
                         WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
                         print "test point 5"
-                        conn = MySQLdb.connect(
-                            host = '127.0.0.1',
-                            port = 3306,
-                            db = 'linkedin',
-                            user = 'root',
-                            passwd = 'bupt123456',
-                            cursorclass = MySQLdb.cursors.DictCursor,
-                            charset = 'utf8',
-                            use_unicode = True
-                            )
-                        conn.set_character_set('utf8')
+                        conn = MySQLConnect().getconnect()
                         cur = conn.cursor()
-                        cur.execute("""update searchinfo set state = 2 where state = 1 and url = %s""", task_url)
+                        cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
                         cur.close()
                         conn.commit()
                         conn.close()
@@ -143,19 +123,9 @@ class linkedinSpider(scrapy.Spider):
                         self.driver.get(task_url)
                         WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
                         print "test point 7"
-                        conn = MySQLdb.connect(
-                            host = '127.0.0.1',
-                            port = 3306,
-                            db = 'linkedin',
-                            user = 'root',
-                            passwd = 'bupt123456',
-                            cursorclass = MySQLdb.cursors.DictCursor,
-                            charset = 'utf8',
-                            use_unicode = True
-                            )
-                        conn.set_character_set('utf8')
+                        conn = MySQLConnect().getconnect()
                         cur = conn.cursor()
-                        cur.execute("""update searchinfo set state = 2 where state = 1 and url = %s""", task_url)
+                        cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
                         cur.close()
                         conn.commit()
                         conn.close()

@@ -1,11 +1,6 @@
 import random
+import MySQLdb
 
-# MySQL Config
-class MySQLConfigs:
-    host = 'localhost'
-    username = 'root'
-    password = 'bupt123456'
-    database  = 'linkedin_profiles'
 
 
 # LinkedIn accounts for simulation
@@ -23,7 +18,9 @@ class LinkedInAccount(object):
 
 class LinkedInUserAgent(object):
     UserAgent = [
-            'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
+            # 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
+            'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0'
+            # 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:36.0) Gecko/20100101 Firefox/36.0 WebKit'
             # 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)',
             # 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.2)',
             # 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
@@ -43,3 +40,20 @@ class LinkedInUserAgent(object):
 #if __name__ == '__main__':
 #    acc = LinkedinAccount()
 #    print acc.get()
+
+# MySQL Config
+class MySQLConnect(object):
+
+    def getconnect(self):
+        conn = MySQLdb.connect(
+            host = '127.0.0.1',
+            port = 3306,
+            db = 'linkedin',
+            user = 'root',
+            passwd = 'bupt123456',
+            cursorclass = MySQLdb.cursors.DictCursor,
+            charset = 'utf8',
+            use_unicode = True
+            )
+        conn.set_character_set('utf8')
+        return conn

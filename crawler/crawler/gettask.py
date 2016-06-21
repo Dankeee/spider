@@ -14,13 +14,18 @@ def get_task_from_mysql():
             )
     cur = conn.cursor()
     print "test point 24"
-    cur.execute("begin transaction1")
-    cur.execute("select url, task_type, from searchinfo where task_status = 0 for update limit 1")
-    cur.execute("update searchinfo set task_status = 1 where task_status = 0 limit 1")
-    cur.execute("comit transaction1")
+    collect = []
+    try:
+        cur.execute("select url, task_type from searchinfo where task_status = 0 limit 1")
+        collect = cur.fetchone()
+        cur.execute("update searchinfo set task_status = 1 where task_status = 0 limit 1")
+        conn.commit()
+        print "test point 24.1"
+    except:
+        conn.rollback()
+        print "test point 24.2"
     print "test point 25"
-    collect = cur.fetchone()
+    print collect
     cur.close()
-    conn.commit()
     conn.close()
     return collect
