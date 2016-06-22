@@ -55,7 +55,6 @@ class linkedinSpider(scrapy.Spider):
         bttn.click()
         self.driver.maximize_window()
         time.sleep(random.uniform(2,4))
-        print "test point 0"
         # cookie_list = self.driver.get_cookies()
         # cookie_dict = {}
         # for cookie in cookie_list:
@@ -70,31 +69,33 @@ class linkedinSpider(scrapy.Spider):
         while True:
             time.sleep(random.uniform(1,3))
             task = get_task_from_mysql()
-            print "test point 1"
             if task:
                 task_url = task['url']
                 task_type = task['task_type']
                 # return cookie_dict
-                print "test point 2"
                 if task_type == 1:
                     # person
-                        print self.driver.current_url
                         self.driver.get(task_url)
-                        print self.driver.current_url
+                        #if user is banned, close the spider
+                        if self.driver.current_url == self.url_login:
+                            driver.close()
+                            sys.exit(0)
+
                         WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
-                        print "test point 3"
                         conn = MySQLConnect().getconnect()
-                        print "test point 3.1"
                         cur = conn.cursor()
                         cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
                         cur.close()
                         conn.commit()
                         conn.close()
-                        print "test point 4"
                         profilecards = self.driver.find_elements_by_xpath('//ol[@id="results"]/li/a')
+                        profileurl = []
                         for profilecard in profilecards:
-                            profile = profilecard.get_attribute("href")
-                            item = self.parse_person_item(self.driver,profile)
+                            url = profilecard.get_attribute("href")
+                            profileurl.append(url)
+                        for purl in profileurl:
+                            time.sleep(random.uniform(2,4))
+                            item = self.parse_person_item(self.driver,purl)
                             yield ProfileItem(profile_url=item["profile_url"],profile_img=item["profile_img"],profile_name=item["profile_name"],profile_headline=item["profile_headline"],profile_location=item["profile_location"],profile_industry=item["profile_industry"],profile_current=item["profile_current"],profile_previous=item["profile_previous"],profile_education=item["profile_education"],profile_homepage=item["profile_homepage"],profile_summary_bkgd=item["profile_summary_bkgd"],profile_experience_bkgd=item["profile_experience_bkgd"],profile_honors_bkgd=item["profile_honors_bkgd"],profile_projects_bkgd=item["profile_projects_bkgd"],profile_top_skills_bkgd=item["profile_top_skills_bkgd"],profile_also_knows_bkgd=item["profile_also_knows_bkgd"],profile_education_bkgd=item["profile_education_bkgd"],profile_organizations_bkgd=item["profile_organizations_bkgd"],profile_organizations_supports=item["profile_organizations_supports"],profile_causes_cares=item["profile_causes_cares"])
 
                         # yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
@@ -103,14 +104,12 @@ class linkedinSpider(scrapy.Spider):
                     try:
                         self.driver.get(task_url)
                         WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
-                        print "test point 5"
                         conn = MySQLConnect().getconnect()
                         cur = conn.cursor()
                         cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
                         cur.close()
                         conn.commit()
                         conn.close()
-                        print "test point 6"
                         companycard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
                         company = companycard.get_attribute("href")
                         item = self.parse_company_item(self.driver,company)
@@ -122,18 +121,17 @@ class linkedinSpider(scrapy.Spider):
                     try:
                         self.driver.get(task_url)
                         WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
-                        print "test point 7"
                         conn = MySQLConnect().getconnect()
                         cur = conn.cursor()
                         cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
                         cur.close()
                         conn.commit()
                         conn.close()
-                        print "test point 8"
                         schoolcard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
                         school = schoolcard.get_attribute("href")
+                        print school
                         item = self.parse_school_item(self.driver,school)
-                        yield ProfileItem(school_url=item["school_url"],school_name=item["school_name"],school_logo=item["school_logo"],school_img=item["school_img"],school_location=item["school_location"],genarl_information=item["genarl_information"],school_homepage=item["school_homepage"],school_email=item["school_email"],school_type=item["school_type"],contact_number=item["contact_number"],school_year=item["school_year"],school_address=item["school_address"],undergrad_students=item["undergrad_students"],graduate_students=item["graduate_students"],male=item["male"],female=item["female"],faculty=item["faculty"],admitted=item["admitted"],total_population=item["total_population"],graduated=item["graduated"],student_faculty_ratio=item["student_faculty_ratio"],tuition=item["tuition"],school_notables=item["school_notables"],students_live_place=item["students_live_place"],students_live_num=item["students_live_num"],students_work_company=item["students_work_company"],students_work_num=item["students_work_num"],students_do_field=item["students_do_field"],students_do_num=item["students_do_num"],students_studied_subject=item["students_studied_subject"],students_studied_num=item["students_studied_num"],students_skill_field=item["students_skill_field"],students_skill_num=item["students_skill_num"])
+                        yield SchoolItem(school_url=item["school_url"],school_name=item["school_name"],school_logo=item["school_logo"],school_img=item["school_img"],school_location=item["school_location"],genarl_information=item["genarl_information"],school_homepage=item["school_homepage"],school_email=item["school_email"],school_type=item["school_type"],contact_number=item["contact_number"],school_year=item["school_year"],school_address=item["school_address"],undergrad_students=item["undergrad_students"],graduate_students=item["graduate_students"],male=item["male"],female=item["female"],faculty=item["faculty"],admitted=item["admitted"],total_population=item["total_population"],graduated=item["graduated"],student_faculty_ratio=item["student_faculty_ratio"],tuition=item["tuition"],school_notables=item["school_notables"],students_live_place=item["students_live_place"],students_live_num=item["students_live_num"],students_work_company=item["students_work_company"],students_work_num=item["students_work_num"],students_do_field=item["students_do_field"],students_do_num=item["students_do_num"],students_studied_subject=item["students_studied_subject"],students_studied_num=item["students_studied_num"],students_skill_field=item["students_skill_field"],students_skill_num=item["students_skill_num"])
                     except:
                         pass
 
@@ -226,7 +224,6 @@ class linkedinSpider(scrapy.Spider):
         self.driver.get(url)
         time.sleep(random.uniform(2,4))
         #item['website'] = None
-        print "person crawllllllllll"
         try:
             item['profile_url'] = self.driver.current_url
             print item['profile_url']
@@ -235,7 +232,7 @@ class linkedinSpider(scrapy.Spider):
 
         try:# null
             item['profile_img'] = None
-            item['profile_img'] = self.driver.find_element_by_xpath('//div[@class="profile-picture"]/img').get_attribute("src")
+            item['profile_img'] = self.driver.find_element_by_xpath('//div[@class="profile-picture"]//img').get_attribute("src")
         except:
             pass
 
@@ -395,6 +392,12 @@ class linkedinSpider(scrapy.Spider):
         # sel = Selector(response)
         # items = []
         try:
+            more = self.driver.find_element_by_class_name("view-more-bar")
+            more.click()
+        except:
+            pass
+
+        try:
             item['company_url'] = self.driver.current_url
             print item['company_url']
         except:
@@ -503,7 +506,13 @@ class linkedinSpider(scrapy.Spider):
 
         try:
             item['school_img'] = None
-            item['school_img'] = self.driver.find_element_by_xpath('//a[@id="cover-photo-show-treasury"]/img').get_attribute("src")
+            item['school_img'] = self.driver.find_element_by_xpath('//div[@id="college-cover-photo"]//img').get_attribute("src")
+        except:
+            pass
+
+        try:
+            more = self.driver.find_element_by_class_name("view-more-bar")
+            more.click()
         except:
             pass
 
@@ -515,111 +524,105 @@ class linkedinSpider(scrapy.Spider):
 
         try:
             item['school_homepage'] = None
-            item['school_homepage'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[1]/a').text
+            item['school_homepage'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Homepage")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['school_email'] = None
-            item['school_email'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[2]/dd[1]/a').text
+            item['school_email'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Email")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['school_type'] = None
-            item['school_type'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[2]/dd[2]').text
+            item['school_type'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Institution Type")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['contact_number'] = None
-            item['contact_number'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[2]').text
+            item['contact_number'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Phone")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['school_year'] = None
-            item['school_year'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[2]/dd[3]').text
+            item['school_year'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Year Level")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['school_address'] = None
-            item['school_address'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[3]').text + self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[4]').text + self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[2]/dl[1]/dd[5]').text
+            item['school_address'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Address")]/following-sibling::dd[1]').text + self.driver.find_element_by_xpath('//dt[contains(text(),"Address")]/following-sibling::dd[2]').text + self.driver.find_element_by_xpath('//dt[contains(text(),"Address")]/following-sibling::dd[3]').text
         except:
             pass
 
         try:
             item['undergrad_students'] = None
-            item['undergrad_students'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[1]').text
+            item['undergrad_students'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Undergrad Students")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['graduate_students'] = None
-            item['graduate_students'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[2]').text
+            item['graduate_students'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Graduate Students")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['faculty'] = None
-            item['faculty'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[3]').text
+            item['faculty'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Faculty")][2]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['total_population'] = None
-            item['total_population'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[4]').text
+            item['total_population'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Total Population")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['student_faculty_ratio'] = None
-            item['student_faculty_ratio'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[5]').text
+            item['student_faculty_ratio'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Student/Faculty Ratio")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['male'] = None
-            item['male'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[2]/dd[1]').text
+            item['male'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Male")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['female'] = None
-            item['female'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[2]/dd[2]').text
+            item['female'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Female")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['admitted'] = None
-            item['admitted'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[2]/dd[3]').text
+            item['admitted'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Admitted")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['graduated'] = None
-            item['graduated'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[3]/dl[1]/dd[1]').text
+            item['graduated'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Graduated")]/following-sibling::dd[1]').text
         except:
             pass
 
         try:
             item['tuition'] = None
-            item['tuition'] = self.driver.find_element_by_xpath('//dl[@class="school-meta-data"]/dd[4]/dl[2]').text
+            item['tuition'] = self.driver.find_element_by_xpath('//dt[contains(text(),"Tuition")]/following-sibling::dd[1]').text + self.driver.find_element_by_xpath('//dt[contains(text(),"Tuition")]/following-sibling::dd[2]').text
         except:
             pass
 
         try:
-            schoolnotable = self.driver.find_element_by_xpath('//ul[@class="higher-ed-nav-menu"]/li[2]')
-            schoolnotable.click()
+            self.driver.find_element_by_link_text('Notables').click()
             time.sleep(random.uniform(2,4))
         except:
             pass
-
-        # def parse_school_notable(self, response):
-        #     if response:
-        #         item = response.meta
-        #         sel = Selector(response)
 
         try:
             item['school_notables'] = []
@@ -631,23 +634,23 @@ class linkedinSpider(scrapy.Spider):
             pass
 
         try:
-            schoolalumni = self.driver.find_element_by_xpath('//ul[@class="higher-ed-nav-menu"]/li[3]')
-            schoolalumni.click()
+            self.driver.find_element_by_link_text('Students & Alumni').click()
             time.sleep(random.uniform(2,4))
         except:
             pass
-        # def parse_school_alumni(self, response):
-        #     if response:
-        #         item = response.meta
-        #         sel = Selector(response)
-        #
-        #         items = []
+
+        try:
+            more = self.driver.find_element_by_class_name("view-more-bar")
+            more.click()
+        except:
+            pass
 
         try:
             item['students_live_place'] = []
             live_places = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[1]/ul/li')
+            ss = ""
             for live_place in live_places:
-                ss = live_place.find_element_by_xpath('//a/div[2]/p[1]').text
+                ss = live_place.get_attribute("title")
                 item['students_live_place'].append(ss)
         except:
             pass
@@ -655,17 +658,19 @@ class linkedinSpider(scrapy.Spider):
         try:
             item['students_live_num'] = []
             live_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[1]/ul/li')
+            ss = ""
             for num in live_num:
-                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
-                item['students_live_place'].append(ss)
+                ss = num.get_attribute("data-count")
+                item['students_live_num'].append(ss)
         except:
             pass
 
         try:
             item['students_work_company'] = []
             companys = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[2]/ul/li')
+            ss = ""
             for company in companys:
-                ss = company.find_element_by_xpath('//a/div[2]/p[1]').text
+                ss = company.get_attribute("title")
                 item['students_work_company'].append(ss)
         except:
             pass
@@ -673,8 +678,9 @@ class linkedinSpider(scrapy.Spider):
         try:
             item['students_work_num'] = []
             work_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[2]/ul/li')
+            ss = ""
             for num in work_num:
-                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
+                ss = num.get_attribute("data-count")
                 item['students_work_num'].append(ss)
         except:
             pass
@@ -682,8 +688,9 @@ class linkedinSpider(scrapy.Spider):
         try:
             item['students_do_field'] = []
             do_field = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[3]/ul/li')
+            ss = ""
             for field in do_field:
-                ss = field.find_element_by_xpath('//a/div[2]/p[1]').text
+                ss = field.get_attribute("title")
                 item['students_do_field'].append(ss)
         except:
             pass
@@ -691,8 +698,9 @@ class linkedinSpider(scrapy.Spider):
         try:
             item['students_do_num'] = []
             do_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[3]/ul/li')
+            ss = ""
             for num in do_num:
-                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
+                ss = num.get_attribute("data-count")
                 item['students_do_num'].append(ss)
         except:
             pass
@@ -700,8 +708,9 @@ class linkedinSpider(scrapy.Spider):
         try:
             item['students_studied_subject'] = []
             subjects = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[4]/ul/li')
+            ss = ""
             for subject in subjects:
-                ss = subject.find_element_by_xpath('//a/div[2]/p[1]').text
+                ss = subject.get_attribute("title")
                 item['students_studied_subject'].append(ss)
         except:
             pass
@@ -709,8 +718,9 @@ class linkedinSpider(scrapy.Spider):
         try:
             item['students_studied_num'] = []
             studied_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[4]/ul/li')
+            ss = ""
             for num in studied_num:
-                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
+                ss = num.get_attribute("data-count")
                 item['students_studied_num'].append(ss)
         except:
             pass
@@ -718,8 +728,9 @@ class linkedinSpider(scrapy.Spider):
         try:
             item['students_skill_field'] = []
             skills = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[5]/ul/li')
+            ss = ""
             for skill in skills:
-                ss = skill.find_element_by_xpath('//a/div[2]/p[1]').text
+                ss = skill.get_attribute("title")
                 item['students_skill_field'].append(ss)
         except:
             pass
@@ -727,8 +738,9 @@ class linkedinSpider(scrapy.Spider):
         try:
             item['students_skill_num'] = []
             skill_num = self.driver.find_elements_by_xpath('//div[@class="carousel-content"]/ul/li[5]/ul/li')
+            ss = ""
             for num in skill_num:
-                ss = num.find_element_by_xpath('//a/div[2]/p[2]').text
+                ss = num.get_attribute("data-count")
                 item['students_skill_num'].append(ss)
         except:
             pass
