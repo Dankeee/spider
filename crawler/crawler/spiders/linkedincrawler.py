@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from scrapy.http import Request
-from crawler.configs import LinkedInAccount,LinkedInUserAgent,MySQLConnect
+from crawler.configs import LinkedInUserAgent,MySQLConnect
 import cPickle as pickle
 import codecs
 import os
@@ -21,6 +21,7 @@ import re
 import time
 import random
 from crawler.gettask import get_task_from_mysql
+from crawler.getuser import get_user_from_mysql
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -28,14 +29,14 @@ class linkedinSpider(scrapy.Spider):
     """ Saving a URL tuple to start"""
     name = "linkedincrawl"
     allowed_domains = ["www.linkedin.com"]
-    account = LinkedInAccount().get()
+    account = get_user_from_mysql()
     ua = LinkedInUserAgent().get()
     # sa = LinkedInProxy().get()
     # service_args = [ '--proxy=localhost:9150', '--proxy-type=socks5', ]
     start_urls = ['https://www.linkedin.com/uas/login']
     def __init__(self):
-        self.key = self.account['key']
-        self.password = self.account['password']
+        self.key = self.account[0]
+        self.password = self.account[1]
         self.url_login = self.start_urls[0]
         cap = webdriver.DesiredCapabilities.PHANTOMJS
         cap["phantomjs.page.settings.resourceTimeout"] = 1000
@@ -73,8 +74,8 @@ class linkedinSpider(scrapy.Spider):
             time.sleep(random.uniform(1,3))
             task = get_task_from_mysql()
             if task:
-                task_url = task['url']
-                task_type = task['task_type']
+                task_url = task[0]
+                task_type = task[1]
                 # return cookie_dict
                 if task_type == 1:
                     # person
@@ -82,6 +83,7 @@ class linkedinSpider(scrapy.Spider):
                         self.driver.get(task_url)
                         #if user is banned, close the spider
                         if self.driver.current_url == self.url_login:
+                            ban_user_from_mysql(self.key)
                             driver.close()
                             sys.exit(0)
 
