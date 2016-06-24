@@ -15,11 +15,11 @@ class LinkedInAccount(object):
     def get(self):
         return self.account[ random.randint(0, len(self.account) - 1) ]
 
-
+# LinkedIn useragent for simulation
 class LinkedInUserAgent(object):
     UserAgent = [
-            # 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
-            'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0'
+            'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0'
+            # 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0'
             # 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:36.0) Gecko/20100101 Firefox/36.0 WebKit'
             # 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)',
             # 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.2)',
@@ -37,9 +37,33 @@ class LinkedInUserAgent(object):
     # get accounts
     def get(self):
         return self.UserAgent[ random.randint(0, len(self.UserAgent) - 1) ]
-#if __name__ == '__main__':
-#    acc = LinkedinAccount()
-#    print acc.get()
+
+# # LinkedIn proxy
+# class LinkedInProxy(object):
+#     proxy = [
+#                     ['--proxy=127.0.0.1:80'],
+#                     # ['--proxy=124.192.8.201:3128'],
+#                     # ['--proxy=123.206.64.196:80'],
+#                     # ['--proxy=118.144.213.85:3128'],
+#                     # ['--proxy=121.69.22.6:8118'],
+#                     # ['--proxy=219.141.225.107:80'],
+#                     # ['--proxy=124.206.133.227:80'],
+#                     # ['--proxy=118.144.156.2:3128'],
+#                     # ['--proxy=175.25.176.49:80'],
+#                     # ['--proxy=218.241.20.219:80'],
+#                     # ['--proxy=211.152.39.234:80'],
+#                     # ['--proxy=123.56.28.196:8888'],
+#                     # ['--proxy=124.206.119.123:3128'],
+#                     # ['--proxy=116.213.105.10:80'],
+#                     # ['--proxy=123.125.232.23:80'],
+#                     # ['--proxy=210.14.143.155:80'],
+#                     # ['--proxy=124.206.167.250:3128'],
+#                     # ['--proxy=123.56.187.111:82'],
+#              ]
+#     # get accounts
+#     def get(self):
+#         return self.proxy[ random.randint(0, len(self.proxy) - 1) ]
+
 
 # MySQL Config
 class MySQLConnect(object):

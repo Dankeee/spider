@@ -30,6 +30,8 @@ class linkedinSpider(scrapy.Spider):
     allowed_domains = ["www.linkedin.com"]
     account = LinkedInAccount().get()
     ua = LinkedInUserAgent().get()
+    # sa = LinkedInProxy().get()
+    # service_args = [ '--proxy=localhost:9150', '--proxy-type=socks5', ]
     start_urls = ['https://www.linkedin.com/uas/login']
     def __init__(self):
         self.key = self.account['key']
@@ -40,6 +42,7 @@ class linkedinSpider(scrapy.Spider):
         cap["phantomjs.page.settings.loadImages"] = False
         cap["phantomjs.page.settings.localToRemoteUrlAccessEnabled"] = True
         cap["phantomjs.page.settings.userAgent"] = self.ua
+        # self.driver = webdriver.PhantomJS(r'C:\Python27\phantomjs-2.0.0-windows\bin\phantomjs.exe',desired_capabilities=cap,service_args=self.service_args)
         self.driver = webdriver.PhantomJS(r'C:\Python27\phantomjs-2.0.0-windows\bin\phantomjs.exe',desired_capabilities=cap)
         self.timeout = 5
 
@@ -75,6 +78,7 @@ class linkedinSpider(scrapy.Spider):
                 # return cookie_dict
                 if task_type == 1:
                     # person
+                    try:
                         self.driver.get(task_url)
                         #if user is banned, close the spider
                         if self.driver.current_url == self.url_login:
@@ -97,7 +101,8 @@ class linkedinSpider(scrapy.Spider):
                             time.sleep(random.uniform(2,4))
                             item = self.parse_person_item(self.driver,purl)
                             yield ProfileItem(profile_url=item["profile_url"],profile_img=item["profile_img"],profile_name=item["profile_name"],profile_headline=item["profile_headline"],profile_location=item["profile_location"],profile_industry=item["profile_industry"],profile_current=item["profile_current"],profile_previous=item["profile_previous"],profile_education=item["profile_education"],profile_homepage=item["profile_homepage"],profile_summary_bkgd=item["profile_summary_bkgd"],profile_experience_bkgd=item["profile_experience_bkgd"],profile_honors_bkgd=item["profile_honors_bkgd"],profile_projects_bkgd=item["profile_projects_bkgd"],profile_top_skills_bkgd=item["profile_top_skills_bkgd"],profile_also_knows_bkgd=item["profile_also_knows_bkgd"],profile_education_bkgd=item["profile_education_bkgd"],profile_organizations_bkgd=item["profile_organizations_bkgd"],profile_organizations_supports=item["profile_organizations_supports"],profile_causes_cares=item["profile_causes_cares"])
-
+                    except:
+                        pass
                         # yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
                 elif task_type == 2:
                     # company
