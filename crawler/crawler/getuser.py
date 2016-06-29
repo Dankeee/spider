@@ -1,5 +1,6 @@
 import MySQLdb
 from crawler.configs import MySQLConnect
+from scrapy.exceptions import CloseSpider
 def get_user_from_mysql():
     conn = MySQLConnect().getconnect()
     cur = conn.cursor()
@@ -24,3 +25,13 @@ def ban_user_from_mysql(email):
     conn.commit()
     cur.close()
     conn.close()
+
+
+def free_user_in_mysql(email):
+    conn = MySQLConnect().getconnect()
+    cur = conn.cursor()
+    cur.execute("""update userinfo set user_status = 1 where user_email = %s""", email)
+    conn.commit()
+    cur.close()
+    conn.close()
+    raise CloseSpider('shutdown by ctrl-c')

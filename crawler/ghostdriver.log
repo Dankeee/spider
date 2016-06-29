@@ -1,26 +1,5 @@
-[INFO  - 2016-06-24T05:18:08.789Z] GhostDriver - Main - running on port 54704
-[INFO  - 2016-06-24T05:18:09.455Z] Session [0a3ec910-39cb-11e6-8409-c17f2d736b24] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":false,"localToRemoteUrlAccessEnabled":true,"userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0","webSecurityEnabled":true}
-[INFO  - 2016-06-24T05:18:09.455Z] Session [0a3ec910-39cb-11e6-8409-c17f2d736b24] - page.customHeaders:  - {}
-[INFO  - 2016-06-24T05:18:09.455Z] Session [0a3ec910-39cb-11e6-8409-c17f2d736b24] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"2.0.0","driverName":"ghostdriver","driverVersion":"1.2.0","platform":"windows-7-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"},"phantomjs.page.settings.localToRemoteUrlAccessEnabled":true,"phantomjs.page.settings.resourceTimeout":1000,"phantomjs.page.settings.loadImages":false,"phantomjs.page.settings.userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0"}
-[INFO  - 2016-06-24T05:18:09.455Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: 0a3ec910-39cb-11e6-8409-c17f2d736b24
-[ERROR - 2016-06-24T05:19:02.174Z] Session [0a3ec910-39cb-11e6-8409-c17f2d736b24] - page.onError - msg: Request returned 0
-
-  :262 in error
-[ERROR - 2016-06-24T05:19:02.175Z] Session [0a3ec910-39cb-11e6-8409-c17f2d736b24] - page.onError - stack:
-  logError (http://s.c.lnkd.licdn.com/sc/p/com.linkedin.company-frontend%3Acompany-frontend-static-content%2B0.0.780/f/%2Fcompany-frontend%2Fconcat%2Foverview-company-js_en_US.js:948)
-
-  :262 in error
-[ERROR - 2016-06-24T05:19:52.238Z] Session [0a3ec910-39cb-11e6-8409-c17f2d736b24] - page.onError - msg: Request returned 0
-
-  :262 in error
-[ERROR - 2016-06-24T05:19:52.239Z] Session [0a3ec910-39cb-11e6-8409-c17f2d736b24] - page.onError - stack:
-  logError (http://s.c.lnkd.licdn.com/sc/p/com.linkedin.company-frontend%3Acompany-frontend-static-content%2B0.0.780/f/%2Fcompany-frontend%2Fconcat%2Foverview-company-js_en_US.js:948)
-
-  :262 in error
-[ERROR - 2016-06-24T05:20:40.818Z] Session [0a3ec910-39cb-11e6-8409-c17f2d736b24] - page.onError - msg: Request returned 0
-
-  :262 in error
-[ERROR - 2016-06-24T05:20:40.819Z] Session [0a3ec910-39cb-11e6-8409-c17f2d736b24] - page.onError - stack:
-  logError (http://s.c.lnkd.licdn.com/sc/p/com.linkedin.company-frontend%3Acompany-frontend-static-content%2B0.0.780/f/%2Fcompany-frontend%2Fconcat%2Foverview-company-js_en_US.js:948)
-
-  :262 in error
+[INFO  - 2016-06-27T04:26:59.414Z] GhostDriver - Main - running on port 49192
+[INFO  - 2016-06-27T04:26:59.982Z] Session [63ef51e0-3c1f-11e6-9904-cdda9d0d7b86] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":false,"localToRemoteUrlAccessEnabled":true,"userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0","webSecurityEnabled":true}
+[INFO  - 2016-06-27T04:26:59.982Z] Session [63ef51e0-3c1f-11e6-9904-cdda9d0d7b86] - page.customHeaders:  - {}
+[INFO  - 2016-06-27T04:26:59.982Z] Session [63ef51e0-3c1f-11e6-9904-cdda9d0d7b86] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"2.0.0","driverName":"ghostdriver","driverVersion":"1.2.0","platform":"windows-7-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"},"phantomjs.page.settings.localToRemoteUrlAccessEnabled":true,"phantomjs.page.settings.resourceTimeout":1000,"phantomjs.page.settings.loadImages":false,"phantomjs.page.settings.userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0"}
+[INFO  - 2016-06-27T04:26:59.983Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: 63ef51e0-3c1f-11e6-9904-cdda9d0d7b86

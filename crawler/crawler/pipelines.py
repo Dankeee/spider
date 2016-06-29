@@ -8,6 +8,7 @@ from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.http import Request
 from scrapy.exceptions import DropItem
 from scrapy import signals
+from scrapy.exceptions import CloseSpider
 import json
 import codecs
 from twisted.enterprise import adbapi
@@ -15,6 +16,7 @@ from datetime import datetime
 from hashlib import md5
 import MySQLdb
 import MySQLdb.cursors
+from crawler.getuser import free_user_in_mysql
 
 class MyImagesPipeline(ImagesPipeline):
     DIR_PATH='E:/Test/src/demo/static/full/%s'
@@ -25,14 +27,32 @@ class MyImagesPipeline(ImagesPipeline):
 
 
 class JsonWithEncodingLinkedinPipeline(object):
-    def __init__(self):
-        self.file = codecs.open('linkedin.json', 'a', encoding='utf-8')
     def process_item(self, item, spider):
-        line = json.dumps(dict(item), ensure_ascii=False) + "\n"
-        self.file.write(line)
-        return item
+        try:
+            item['profile_url']
+            file = codecs.open('profile.json', 'a', encoding='utf-8')
+            line = json.dumps(dict(item), ensure_ascii=False) + "\n"
+            file.write(line)
+            return item
+        except:
+            try:
+                item['company_url']
+                file = codecs.open('company.json', 'a', encoding='utf-8')
+                line = json.dumps(dict(item), ensure_ascii=False) + "\n"
+                file.write(line)
+                return item
+            except:
+                try:
+                    item['school_url']
+                    file = codecs.open('school.json', 'a', encoding='utf-8')
+                    line = json.dumps(dict(item), ensure_ascii=False) + "\n"
+                    file.write(line)
+                    return item
+                except:
+                    pass
     def spider_closed(self, spider):
         self.file.close()
+        raise CloseSpider('Shutdown by ctrl-c')
 
 
 class MySQLStoreLinkedinPipeline(object):
