@@ -75,7 +75,7 @@ class linkedinSpider(scrapy.Spider):
         task = []
         while True:
             try:
-                time.sleep(random.uniform(1,3))
+                time.sleep(random.uniform(6,10))
             except IOError, e:
                 free_user_in_mysql(self.key)
             task = get_task_from_mysql()
@@ -113,6 +113,12 @@ class linkedinSpider(scrapy.Spider):
                             item = self.parse_person_item(self.driver,purl)
                             yield ProfileItem(profile_url=item["profile_url"],profile_img=item["profile_img"],profile_name=item["profile_name"],profile_headline=item["profile_headline"],profile_location=item["profile_location"],profile_industry=item["profile_industry"],profile_current=item["profile_current"],profile_previous=item["profile_previous"],profile_education=item["profile_education"],profile_homepage=item["profile_homepage"],profile_summary_bkgd=item["profile_summary_bkgd"],profile_experience_bkgd=item["profile_experience_bkgd"],profile_honors_bkgd=item["profile_honors_bkgd"],profile_projects_bkgd=item["profile_projects_bkgd"],profile_top_skills_bkgd=item["profile_top_skills_bkgd"],profile_also_knows_bkgd=item["profile_also_knows_bkgd"],profile_education_bkgd=item["profile_education_bkgd"],profile_organizations_bkgd=item["profile_organizations_bkgd"],profile_organizations_supports=item["profile_organizations_supports"],profile_causes_cares=item["profile_causes_cares"],key=self.key)
                     except:
+                        conn = MySQLConnect().getconnect()
+                        cur = conn.cursor()
+                        cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
+                        cur.close()
+                        conn.commit()
+                        conn.close()
                         pass
                         # yield scrapy.Request(profile, headers=self.headers, cookies=self.cookdic, timeout=self.timeout, callback=self.parse_person_item)
                 elif task_type == 2:
@@ -131,6 +137,12 @@ class linkedinSpider(scrapy.Spider):
                         item = self.parse_company_item(self.driver,company)
                         yield CompanyItem(company_url=item["company_url"],company_name=item["company_name"],company_logo=item["company_logo"],company_img=item["company_img"],company_description=item["company_description"],company_specialties=item["company_specialties"],company_website=item["company_website"],company_industy=item["company_industy"],company_type=item["company_type"],company_headquarters=item["company_headquarters"],company_size=item["company_size"],company_founded=item["company_founded"],key=self.key)
                     except:
+                        conn = MySQLConnect().getconnect()
+                        cur = conn.cursor()
+                        cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
+                        cur.close()
+                        conn.commit()
+                        conn.close()
                         pass
                 else:
                     # school
@@ -149,6 +161,12 @@ class linkedinSpider(scrapy.Spider):
                         item = self.parse_school_item(self.driver,school)
                         yield SchoolItem(school_url=item["school_url"],school_name=item["school_name"],school_logo=item["school_logo"],school_img=item["school_img"],school_location=item["school_location"],genarl_information=item["genarl_information"],school_homepage=item["school_homepage"],school_email=item["school_email"],school_type=item["school_type"],contact_number=item["contact_number"],school_year=item["school_year"],school_address=item["school_address"],undergrad_students=item["undergrad_students"],graduate_students=item["graduate_students"],male=item["male"],female=item["female"],faculty=item["faculty"],admitted=item["admitted"],total_population=item["total_population"],graduated=item["graduated"],student_faculty_ratio=item["student_faculty_ratio"],tuition=item["tuition"],school_notables=item["school_notables"],students_live_place=item["students_live_place"],students_live_num=item["students_live_num"],students_work_company=item["students_work_company"],students_work_num=item["students_work_num"],students_do_field=item["students_do_field"],students_do_num=item["students_do_num"],students_studied_subject=item["students_studied_subject"],students_studied_num=item["students_studied_num"],students_skill_field=item["students_skill_field"],students_skill_num=item["students_skill_num"],key=self.key)
                     except:
+                        conn = MySQLConnect().getconnect()
+                        cur = conn.cursor()
+                        cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
+                        cur.close()
+                        conn.commit()
+                        conn.close()
                         pass
 
 

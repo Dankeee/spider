@@ -1,5 +1,120 @@
-[INFO  - 2016-06-27T04:26:59.414Z] GhostDriver - Main - running on port 49192
-[INFO  - 2016-06-27T04:26:59.982Z] Session [63ef51e0-3c1f-11e6-9904-cdda9d0d7b86] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":false,"localToRemoteUrlAccessEnabled":true,"userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0","webSecurityEnabled":true}
-[INFO  - 2016-06-27T04:26:59.982Z] Session [63ef51e0-3c1f-11e6-9904-cdda9d0d7b86] - page.customHeaders:  - {}
-[INFO  - 2016-06-27T04:26:59.982Z] Session [63ef51e0-3c1f-11e6-9904-cdda9d0d7b86] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"2.0.0","driverName":"ghostdriver","driverVersion":"1.2.0","platform":"windows-7-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"},"phantomjs.page.settings.localToRemoteUrlAccessEnabled":true,"phantomjs.page.settings.resourceTimeout":1000,"phantomjs.page.settings.loadImages":false,"phantomjs.page.settings.userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0"}
-[INFO  - 2016-06-27T04:26:59.983Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: 63ef51e0-3c1f-11e6-9904-cdda9d0d7b86
+[INFO  - 2016-06-30T08:52:16.028Z] GhostDriver - Main - running on port 50783
+[INFO  - 2016-06-30T08:52:16.639Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":false,"localToRemoteUrlAccessEnabled":true,"userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0","webSecurityEnabled":true}
+[INFO  - 2016-06-30T08:52:16.639Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.customHeaders:  - {}
+[INFO  - 2016-06-30T08:52:16.639Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"2.0.0","driverName":"ghostdriver","driverVersion":"1.2.0","platform":"windows-7-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"},"phantomjs.page.settings.localToRemoteUrlAccessEnabled":true,"phantomjs.page.settings.resourceTimeout":1000,"phantomjs.page.settings.loadImages":false,"phantomjs.page.settings.userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0"}
+[INFO  - 2016-06-30T08:52:16.639Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: f23d88e0-3e9f-11e6-ad2b-41fa00ecde34
+[ERROR - 2016-06-30T08:52:40.182Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276760136
+
+  :262 in error
+[ERROR - 2016-06-30T08:52:47.963Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - msg: Request returned 0
+
+  :262 in error
+[ERROR - 2016-06-30T08:52:47.963Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - stack:
+  (anonymous function) (http://s.c.lnkd.licdn.com/scds/concat/common/js?h=e2lgukqldpqool72t8g7tysag-3nuvxgwg15rbghxm1gpzfbya2-1nm61x5u7981e88m10hpaekkm-mv3v66b8q0h1hvgvd3yfjv5f-14k913qahq3mh0ac0lh0twk9v-28vfzntn604yf2k0jo32aleiv-64jfglk4psru95ie0m5pte7p3:6)
+
+  :262 in error
+[ERROR - 2016-06-30T08:52:56.630Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276776570
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:05.458Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - msg: Request returned 0
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:05.459Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - stack:
+  (anonymous function) (http://s.c.lnkd.licdn.com/scds/concat/common/js?h=e2lgukqldpqool72t8g7tysag-3nuvxgwg15rbghxm1gpzfbya2-1nm61x5u7981e88m10hpaekkm-mv3v66b8q0h1hvgvd3yfjv5f-14k913qahq3mh0ac0lh0twk9v-28vfzntn604yf2k0jo32aleiv-64jfglk4psru95ie0m5pte7p3:6)
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:12.590Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276792589
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:13.041Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276793004
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:13.469Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276793429
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:13.955Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276793912
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:14.424Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276794378
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:14.852Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276794815
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:24.573Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - msg: Request returned 0
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:24.573Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - stack:
+  (anonymous function) (http://s.c.lnkd.licdn.com/scds/concat/common/js?h=e2lgukqldpqool72t8g7tysag-3nuvxgwg15rbghxm1gpzfbya2-1nm61x5u7981e88m10hpaekkm-mv3v66b8q0h1hvgvd3yfjv5f-14k913qahq3mh0ac0lh0twk9v-28vfzntn604yf2k0jo32aleiv-64jfglk4psru95ie0m5pte7p3:6)
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:34.345Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276814298
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:44.029Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - msg: Request returned 0
+
+  :262 in error
+[ERROR - 2016-06-30T08:53:44.030Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - stack:
+  (anonymous function) (http://s.c.lnkd.licdn.com/scds/concat/common/js?h=e2lgukqldpqool72t8g7tysag-3nuvxgwg15rbghxm1gpzfbya2-1nm61x5u7981e88m10hpaekkm-mv3v66b8q0h1hvgvd3yfjv5f-14k913qahq3mh0ac0lh0twk9v-28vfzntn604yf2k0jo32aleiv-64jfglk4psru95ie0m5pte7p3:6)
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:04.844Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - msg: Request returned 0
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:04.844Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - stack:
+  (anonymous function) (http://s.c.lnkd.licdn.com/scds/concat/common/js?h=e2lgukqldpqool72t8g7tysag-3nuvxgwg15rbghxm1gpzfbya2-1nm61x5u7981e88m10hpaekkm-mv3v66b8q0h1hvgvd3yfjv5f-14k913qahq3mh0ac0lh0twk9v-28vfzntn604yf2k0jo32aleiv-64jfglk4psru95ie0m5pte7p3:6)
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:07.050Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276846976
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:07.998Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276847967
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:08.909Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276848869
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:09.813Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276849791
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:10.749Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276850709
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:11.696Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276851660
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:12.650Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276852614
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:13.620Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276853582
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:14.552Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276854515
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:15.491Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276855451
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:16.455Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276856415
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:31.570Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276871514
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:32.041Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276871998
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:32.536Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276872498
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:32.990Z] WebElementLocator - _handleLocateCommand - Element(s) NOT Found: GAVE UP. Search Stop Time: 1467276872975
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:41.064Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - msg: Request returned 0
+
+  :262 in error
+[ERROR - 2016-06-30T08:54:41.064Z] Session [f23d88e0-3e9f-11e6-ad2b-41fa00ecde34] - page.onError - stack:
+  (anonymous function) (http://s.c.lnkd.licdn.com/scds/concat/common/js?h=e2lgukqldpqool72t8g7tysag-3nuvxgwg15rbghxm1gpzfbya2-1nm61x5u7981e88m10hpaekkm-mv3v66b8q0h1hvgvd3yfjv5f-14k913qahq3mh0ac0lh0twk9v-28vfzntn604yf2k0jo32aleiv-64jfglk4psru95ie0m5pte7p3:6)
+
+  :262 in error
+[INFO  - 2016-06-30T08:57:16.026Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
