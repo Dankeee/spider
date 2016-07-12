@@ -14,7 +14,7 @@ import MySQLdb
 #     # get accounts
 #     def get(self):
 #         return self.account[ random.randint(0, len(self.account) - 1) ]
-
+COUNT = 3
 # LinkedIn useragent for simulation
 class LinkedInUserAgent(object):
     UserAgent = [
