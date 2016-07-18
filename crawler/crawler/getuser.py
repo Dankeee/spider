@@ -1,6 +1,6 @@
 import MySQLdb
 from crawler.configs import MySQLConnect
-from scrapy.exceptions import CloseSpider
+
 def get_user_from_mysql():
     conn = MySQLConnect().getconnect()
     cur = conn.cursor()
@@ -34,4 +34,3 @@ def free_user_in_mysql(email):
     conn.commit()
     cur.close()
     conn.close()
-    raise CloseSpider('shutdown by ctrl-c')

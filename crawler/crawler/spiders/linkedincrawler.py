@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from scrapy.http import Request
+import subprocess
 import crawler.configs as configs
 import codecs
 import os
@@ -19,6 +20,7 @@ import scrapy
 import re
 import time
 import random
+from scrapy.exceptions import CloseSpider
 from crawler.gettask import get_task_from_mysql
 from crawler.getuser import get_user_from_mysql, ban_user_from_mysql, free_user_in_mysql
 reload(sys)
@@ -28,31 +30,35 @@ class linkedinSpider(scrapy.Spider):
     """ Saving a URL tuple to start"""
     name = "linkedincrawl"
     allowed_domains = ["www.linkedin.com"]
-    account = get_user_from_mysql()
-    ua = configs.LinkedInUserAgent().get()
+
+
     # sa = LinkedInProxy().get()
     # service_args = [ '--proxy=localhost:9150', '--proxy-type=socks5', ]
     start_urls = ['https://www.linkedin.com/uas/login']
-    def __init__(self):
-        self.key = self.account[0]
-        self.password = self.account[1]
+
+
+
+    def start_requests(self):
+        start_urls = ['https://www.linkedin.com/uas/login']
         self.url_login = self.start_urls[0]
+        ua = configs.LinkedInUserAgent().get()
         cap = webdriver.DesiredCapabilities.PHANTOMJS
         cap["phantomjs.page.settings.resourceTimeout"] = 1000
         cap["phantomjs.page.settings.loadImages"] = False
         cap["phantomjs.page.settings.localToRemoteUrlAccessEnabled"] = True
-        cap["phantomjs.page.settings.userAgent"] = self.ua
+        cap["phantomjs.page.settings.userAgent"] = ua
         # self.driver = webdriver.PhantomJS(r'C:\Python27\phantomjs-2.0.0-windows\bin\phantomjs.exe',desired_capabilities=cap,service_args=self.service_args)
         self.driver = webdriver.PhantomJS(r'C:\Python27\phantomjs-2.0.0-windows\bin\phantomjs.exe',desired_capabilities=cap)
+        self.driver.delete_all_cookies()
         self.timeout = 5
-
-
-    def start_requests(self):
+        self.account = get_user_from_mysql()
+        self.key = self.account[0]
+        self.password = self.account[1]
         return [Request("https://www.linkedin.com/uas/login", callback = self.login)]
 
     def login(self, response):
         self.count = 1
-        self.driver.get(self.url_login)
+        self.driver.get("https://www.linkedin.com/uas/login")
         self.driver.find_element_by_id("session_key-login").send_keys(self.key)
         self.driver.find_element_by_id("session_password-login").send_keys(self.password)
         bttn = self.driver.find_element_by_id("btn-primary")
@@ -62,6 +68,7 @@ class linkedinSpider(scrapy.Spider):
             time.sleep(random.uniform(2,4))
         except IOError, e:
             free_user_in_mysql(self.key)
+            raise CloseSpider('shutdown by ctrl-c')
         # cookie_list = self.driver.get_cookies()
         # cookie_dict = {}
         # for cookie in cookie_list:
@@ -78,120 +85,153 @@ class linkedinSpider(scrapy.Spider):
                 time.sleep(random.uniform(6,10))
             except IOError, e:
                 free_user_in_mysql(self.key)
+                raise CloseSpider('shutdown by ctrl-c')
             task = get_task_from_mysql()
+
+            # print self.key
+            # print "there is something wrong with driver.get"
+            # self.driver.quit()
+            # print "login again"
+            # self.start_requests()
+            # print "start_requests"
+
             if task:
                 task_url = task[0]
                 task_type = task[1]
                 # return cookie_dict
                 if task_type == 1:
                     # person
-                    # try:
-                    self.driver.get(task_url)
+                    print self.key
+                    try:
 
-                    if self.driver.current_url == self.url_login:
-                        #  or self.count == configs.COUNT:
-                        ban_user_from_mysql(self.key)
+                        self.driver.get(task_url)
+
+                        if self.driver.current_url == self.url_login:
+                            #  or self.count == configs.COUNT:
+                            ban_user_from_mysql(self.key)
+                            self.driver.quit()
+                            sys.exit(0)
+                            # raise CloseSpider('shutdown...')
+                        else:
+                            try:
+                                WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+                                conn = configs.MySQLConnect().getconnect()
+                                cur = conn.cursor()
+                                cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
+                                cur.close()
+                                conn.commit()
+                                conn.close()
+                                profilecards = self.driver.find_elements_by_xpath('//ol[@id="results"]/li/a')
+                                profileurl = []
+                                nurl=0
+                                for profilecard in profilecards:
+                                    url = profilecard.get_attribute("href")
+                                    profileurl.append(url)
+                                    nurl += 1
+                                    # if nurl == 5:
+                                    #     break
+                                for purl in profileurl:
+                                    try:
+                                        time.sleep(random.uniform(2,4))
+                                    except IOError, e:
+                                        free_user_in_mysql(self.key)
+                                        raise CloseSpider('shutdown by ctrl-c')
+                                    item = self.parse_person_item(self.driver,purl)
+                                    yield ProfileItem(profile_url=item["profile_url"],profile_img=item["profile_img"],profile_name=item["profile_name"],profile_headline=item["profile_headline"],profile_location=item["profile_location"],profile_industry=item["profile_industry"],profile_current=item["profile_current"],profile_previous=item["profile_previous"],profile_education=item["profile_education"],profile_homepage=item["profile_homepage"],profile_summary_bkgd=item["profile_summary_bkgd"],profile_experience_bkgd=item["profile_experience_bkgd"],profile_honors_bkgd=item["profile_honors_bkgd"],profile_projects_bkgd=item["profile_projects_bkgd"],profile_top_skills_bkgd=item["profile_top_skills_bkgd"],profile_also_knows_bkgd=item["profile_also_knows_bkgd"],profile_education_bkgd=item["profile_education_bkgd"],profile_organizations_bkgd=item["profile_organizations_bkgd"],profile_organizations_supports=item["profile_organizations_supports"],profile_causes_cares=item["profile_causes_cares"],key=self.key)
+                            except:
+                                conn = configs.MySQLConnect().getconnect()
+                                cur = conn.cursor()
+                                cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
+                                cur.close()
+                                conn.commit()
+                                conn.close()
+                                pass
+                    except:
+                        free_user_in_mysql(self.key)
                         self.driver.quit()
                         sys.exit(0)
-                    else:
-                        try:
-                            WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
-                            conn = configs.MySQLConnect().getconnect()
-                            cur = conn.cursor()
-                            cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
-                            cur.close()
-                            conn.commit()
-                            conn.close()
-                            profilecards = self.driver.find_elements_by_xpath('//ol[@id="results"]/li/a')
-                            profileurl = []
-                            nurl=0
-                            for profilecard in profilecards:
-                                url = profilecard.get_attribute("href")
-                                profileurl.append(url)
-                                nurl += 1
-                                if nurl == 5:
-                                    break
-                            for purl in profileurl:
-                                try:
-                                    time.sleep(random.uniform(2,4))
-                                except IOError, e:
-                                    free_user_in_mysql(self.key)
-                                item = self.parse_person_item(self.driver,purl)
-                                yield ProfileItem(profile_url=item["profile_url"],profile_img=item["profile_img"],profile_name=item["profile_name"],profile_headline=item["profile_headline"],profile_location=item["profile_location"],profile_industry=item["profile_industry"],profile_current=item["profile_current"],profile_previous=item["profile_previous"],profile_education=item["profile_education"],profile_homepage=item["profile_homepage"],profile_summary_bkgd=item["profile_summary_bkgd"],profile_experience_bkgd=item["profile_experience_bkgd"],profile_honors_bkgd=item["profile_honors_bkgd"],profile_projects_bkgd=item["profile_projects_bkgd"],profile_top_skills_bkgd=item["profile_top_skills_bkgd"],profile_also_knows_bkgd=item["profile_also_knows_bkgd"],profile_education_bkgd=item["profile_education_bkgd"],profile_organizations_bkgd=item["profile_organizations_bkgd"],profile_organizations_supports=item["profile_organizations_supports"],profile_causes_cares=item["profile_causes_cares"],key=self.key)
-                        except:
-                            conn = configs.MySQLConnect().getconnect()
-                            cur = conn.cursor()
-                            cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
-                            cur.close()
-                            conn.commit()
-                            conn.close()
-                            pass
+                        # raise CloseSpider('shutdown...')
+
                 elif task_type == 2:
                     # company
                     # try:
-                    self.driver.get(task_url)
-
                     print self.key
-                    print self.count
-                    print self.driver.current_url
-                    if self.driver.current_url == self.url_login:
-                        #  or self.count == configs.COUNT:
-                        ban_user_from_mysql(self.key)
+                    try:
+                        self.driver.get(task_url)
+                        print self.driver.current_url
+                        if self.driver.current_url == self.url_login:
+                            #  or self.count == configs.COUNT:
+                            ban_user_from_mysql(self.key)
+                            self.driver.quit()
+                            sys.exit(0)
+                            # raise CloseSpider('shutdown...')
+                        else:
+                            try:
+                                WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+                                conn = configs.MySQLConnect().getconnect()
+                                cur = conn.cursor()
+                                cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
+                                cur.close()
+                                conn.commit()
+                                conn.close()
+                                companycard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
+                                company = companycard.get_attribute("href")
+                                item = self.parse_company_item(self.driver,company)
+                                yield CompanyItem(company_url=item["company_url"],company_name=item["company_name"],company_logo=item["company_logo"],company_img=item["company_img"],company_description=item["company_description"],company_specialties=item["company_specialties"],company_website=item["company_website"],company_industy=item["company_industy"],company_type=item["company_type"],company_headquarters=item["company_headquarters"],company_size=item["company_size"],company_founded=item["company_founded"],key=self.key)
+                            except:
+                                conn = configs.MySQLConnect().getconnect()
+                                cur = conn.cursor()
+                                cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
+                                cur.close()
+                                conn.commit()
+                                conn.close()
+                                pass
+                    except:
+                        print "exchange loginkey"
+                        free_user_in_mysql(self.key)
                         self.driver.quit()
                         sys.exit(0)
-                    else:
-                        try:
-                            WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
-                            conn = configs.MySQLConnect().getconnect()
-                            cur = conn.cursor()
-                            cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
-                            cur.close()
-                            conn.commit()
-                            conn.close()
-                            companycard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
-                            company = companycard.get_attribute("href")
-                            item = self.parse_company_item(self.driver,company)
-                            yield CompanyItem(company_url=item["company_url"],company_name=item["company_name"],company_logo=item["company_logo"],company_img=item["company_img"],company_description=item["company_description"],company_specialties=item["company_specialties"],company_website=item["company_website"],company_industy=item["company_industy"],company_type=item["company_type"],company_headquarters=item["company_headquarters"],company_size=item["company_size"],company_founded=item["company_founded"],key=self.key)
-                        except:
-                            conn = configs.MySQLConnect().getconnect()
-                            cur = conn.cursor()
-                            cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
-                            cur.close()
-                            conn.commit()
-                            conn.close()
-                            pass
+                        # raise CloseSpider('shutdown...')
                 else:
                     # school
                     # try:
-                    self.driver.get(task_url)
+                    try:
+                        self.driver.get(task_url)
 
-                    if self.driver.current_url == self.url_login:
-                        #  or self.count == configs.COUNT:
-                        ban_user_from_mysql(self.key)
+                        if self.driver.current_url == self.url_login:
+                            #  or self.count == configs.COUNT:
+                            ban_user_from_mysql(self.key)
+                            self.driver.quit()
+                            sys.exit(0)
+                            # raise CloseSpider('shutdown...')
+                        else:
+                            try:
+                                WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
+                                conn = configs.MySQLConnect().getconnect()
+                                cur = conn.cursor()
+                                cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
+                                cur.close()
+                                conn.commit()
+                                conn.close()
+                                schoolcard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
+                                school = schoolcard.get_attribute("href")
+                                print school
+                                item = self.parse_school_item(self.driver,school)
+                                yield SchoolItem(school_url=item["school_url"],school_name=item["school_name"],school_logo=item["school_logo"],school_img=item["school_img"],school_location=item["school_location"],genarl_information=item["genarl_information"],school_homepage=item["school_homepage"],school_email=item["school_email"],school_type=item["school_type"],contact_number=item["contact_number"],school_year=item["school_year"],school_address=item["school_address"],undergrad_students=item["undergrad_students"],graduate_students=item["graduate_students"],male=item["male"],female=item["female"],faculty=item["faculty"],admitted=item["admitted"],total_population=item["total_population"],graduated=item["graduated"],student_faculty_ratio=item["student_faculty_ratio"],tuition=item["tuition"],school_notables=item["school_notables"],students_live_place=item["students_live_place"],students_live_num=item["students_live_num"],students_work_company=item["students_work_company"],students_work_num=item["students_work_num"],students_do_field=item["students_do_field"],students_do_num=item["students_do_num"],students_studied_subject=item["students_studied_subject"],students_studied_num=item["students_studied_num"],students_skill_field=item["students_skill_field"],students_skill_num=item["students_skill_num"],key=self.key)
+                            except:
+                                conn = configs.MySQLConnect().getconnect()
+                                cur = conn.cursor()
+                                cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
+                                cur.close()
+                                conn.commit()
+                                conn.close()
+                                pass
+                    except:
+                        print "exchange loginkey"
+                        free_user_in_mysql(self.key)
                         self.driver.quit()
                         sys.exit(0)
-                    else:
-                        try:
-                            WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located((By.ID, "results")))
-                            conn = configs.MySQLConnect().getconnect()
-                            cur = conn.cursor()
-                            cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
-                            cur.close()
-                            conn.commit()
-                            conn.close()
-                            schoolcard = self.driver.find_element_by_xpath('//ol[@id="results"]/li[1]/a')
-                            school = schoolcard.get_attribute("href")
-                            print school
-                            item = self.parse_school_item(self.driver,school)
-                            yield SchoolItem(school_url=item["school_url"],school_name=item["school_name"],school_logo=item["school_logo"],school_img=item["school_img"],school_location=item["school_location"],genarl_information=item["genarl_information"],school_homepage=item["school_homepage"],school_email=item["school_email"],school_type=item["school_type"],contact_number=item["contact_number"],school_year=item["school_year"],school_address=item["school_address"],undergrad_students=item["undergrad_students"],graduate_students=item["graduate_students"],male=item["male"],female=item["female"],faculty=item["faculty"],admitted=item["admitted"],total_population=item["total_population"],graduated=item["graduated"],student_faculty_ratio=item["student_faculty_ratio"],tuition=item["tuition"],school_notables=item["school_notables"],students_live_place=item["students_live_place"],students_live_num=item["students_live_num"],students_work_company=item["students_work_company"],students_work_num=item["students_work_num"],students_do_field=item["students_do_field"],students_do_num=item["students_do_num"],students_studied_subject=item["students_studied_subject"],students_studied_num=item["students_studied_num"],students_skill_field=item["students_skill_field"],students_skill_num=item["students_skill_num"],key=self.key)
-                        except:
-                            conn = configs.MySQLConnect().getconnect()
-                            cur = conn.cursor()
-                            cur.execute("""update searchinfo set task_status = 2 where task_status = 1 and url = %s""", task_url)
-                            cur.close()
-                            conn.commit()
-                            conn.close()
-                            pass
+                        # raise CloseSpider('shutdown...')
 
 
     def get_cookie_from_linkedin(self):
@@ -284,6 +324,7 @@ class linkedinSpider(scrapy.Spider):
             time.sleep(random.uniform(2,4))
         except IOError, e:
             free_user_in_mysql(self.key)
+            raise CloseSpider('shutdown by ctrl-c')
         #item['website'] = None
         try:
             item['profile_url'] = self.driver.current_url
@@ -442,7 +483,7 @@ class linkedinSpider(scrapy.Spider):
             pass
 
         # items.append(item)
-        self.count += 1
+        # self.count += 1
         return item
 
 
@@ -452,6 +493,7 @@ class linkedinSpider(scrapy.Spider):
             time.sleep(random.uniform(2,4))
         except IOError, e:
             free_user_in_mysql(self.key)
+            raise CloseSpider('shutdown by ctrl-c')
         item = CompanyItem()
         # sel = Selector(response)
         # items = []
@@ -534,7 +576,7 @@ class linkedinSpider(scrapy.Spider):
             pass
 
         # items.append(item)
-        self.count += 1
+        # self.count += 1
         return item
 
 
@@ -544,6 +586,7 @@ class linkedinSpider(scrapy.Spider):
             time.sleep(random.uniform(2,4))
         except IOError, e:
             free_user_in_mysql(self.key)
+            raise CloseSpider('shutdown by ctrl-c')
         item = SchoolItem()
         # sel = Selector(response)
 
@@ -691,6 +734,7 @@ class linkedinSpider(scrapy.Spider):
                 time.sleep(random.uniform(2,4))
             except IOError, e:
                 free_user_in_mysql(self.key)
+                raise CloseSpider('shutdown by ctrl-c')
         except:
             pass
 
@@ -709,6 +753,7 @@ class linkedinSpider(scrapy.Spider):
                 time.sleep(random.uniform(2,4))
             except IOError, e:
                 free_user_in_mysql(self.key)
+                raise CloseSpider('shutdown by ctrl-c')
         except:
             pass
 
@@ -817,5 +862,5 @@ class linkedinSpider(scrapy.Spider):
                 item['students_skill_num'].append(ss)
         except:
             pass
-        self.count += 1
+        # self.count += 1
         return item
