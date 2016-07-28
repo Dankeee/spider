@@ -29,6 +29,7 @@ class ProfileItem(scrapy.Item):
     profile_organizations_bkgd = scrapy.Field()
     profile_organizations_supports = scrapy.Field()
     profile_causes_cares = scrapy.Field()
+    image_paths = scrapy.Field()
     key = scrapy.Field()
     pass
 
@@ -68,6 +69,7 @@ class SchoolItem(scrapy.Item):
     students_studied_num = scrapy.Field()
     students_skill_field = scrapy.Field()
     students_skill_num = scrapy.Field()
+    image_paths = scrapy.Field()
     key = scrapy.Field()
     pass
 
@@ -87,5 +89,6 @@ class CompanyItem(scrapy.Item):
     company_headquarters = scrapy.Field()
     company_size = scrapy.Field()
     company_founded = scrapy.Field()
+    image_paths = scrapy.Field()
     key = scrapy.Field()
     pass

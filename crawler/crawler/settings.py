@@ -15,14 +15,14 @@ SPIDER_MODULES = ['crawler.spiders']
 NEWSPIDER_MODULE = 'crawler.spiders'
 HTTPERROR_ALLOWED_CODES= [521]
 ITEM_PIPELINES = {
-    #'crawler.pipelines.MyImagesPipeline': 1,
+    # 'crawler.pipelines.MyImagesPipeline': 1,
     'crawler.pipelines.JsonWithEncodingLinkedinPipeline': 300,
     'crawler.pipelines.MongoDBPipeline': 300,
     #'crawler.pipelines.MySQLStoreLinkedinPipeline': 300,
 }
 LOG_LEVEL = 'INFO'
 
-IMAGES_STORE = '/tmp/pic'
+IMAGES_STORE = 'D:/Test/src/demo/static/pic/'
 IMAGES_EXPIRES = 15
 
 

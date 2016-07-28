@@ -2,8 +2,12 @@ import time
 import subprocess
 import sys
 
-
-while 1:
+i = 1
+while i > 0:
     time.sleep(10)
-    etcd = subprocess.check_call('scrapy crawl linkedincrawl', close_fds = True)
-    print etcd
+    etcd = subprocess.Popen('scrapy crawl linkedincrawl', close_fds = True)
+    i -= 1
+    time.sleep(1800)
+    if etcd.poll() is None:
+        etcd.kill()
+        print 'timed out'

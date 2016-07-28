@@ -106,7 +106,7 @@ class linkedinSpider(scrapy.Spider):
 
                         self.driver.get(task_url)
 
-                        if self.driver.current_url == self.url_login:
+                        if self.driver.current_url[0:34] == self.url_login:
                             #  or self.count == configs.COUNT:
                             ban_user_from_mysql(self.key)
                             self.driver.quit()
@@ -159,7 +159,7 @@ class linkedinSpider(scrapy.Spider):
                     try:
                         self.driver.get(task_url)
                         print self.driver.current_url
-                        if self.driver.current_url == self.url_login:
+                        if self.driver.current_url[0:34] == self.url_login:
                             #  or self.count == configs.COUNT:
                             ban_user_from_mysql(self.key)
                             self.driver.quit()
@@ -198,7 +198,7 @@ class linkedinSpider(scrapy.Spider):
                     try:
                         self.driver.get(task_url)
 
-                        if self.driver.current_url == self.url_login:
+                        if self.driver.current_url[0:34] == self.url_login:
                             #  or self.count == configs.COUNT:
                             ban_user_from_mysql(self.key)
                             self.driver.quit()
